@@ -1,0 +1,191 @@
+<%- include('../partials/header') %>
+
+<style>
+  .classes-wrap {
+    margin-top: 1.5rem;
+    max-width: 720px;
+  }
+
+  .classes-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .classes-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .classes-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .classes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .class-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .class-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .class-row__main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .class-row__name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+
+  .class-row__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(201, 106, 58, 0.14);
+    color: var(--primary);
+    white-space: nowrap;
+  }
+
+  .pill.secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+  }
+
+  .class-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.05s ease;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+
+  .btn:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .btn.primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+</style>
+
+<div class="classes-wrap">
+  <div class="classes-header">
+    <div>
+      <h1 class="classes-title">Classes</h1>
+      <p class="classes-subtitle">Pick a class to take attendance.</p>
+    </div>
+  </div>
+
+  <% if (classes && classes.length) { %>
+    <div class="classes-list">
+      <% classes.forEach(c => { %>
+        <div class="class-row">
+          <div class="class-row__main">
+            <h2 class="class-row__name"><%= c.className %></h2>
+
+            <div class="class-row__meta">
+              <% if (c.teacherName) { %>
+                <span class="pill">👩‍🏫 <%= c.teacherName %></span>
+              <% } else { %>
+                <span class="pill secondary">No teacher assigned</span>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="class-row__actions">
+            <a class="btn primary" href="/attendance?classID=<%= c.classID %>">Take Attendance</a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      No classes found yet. Add a class to start taking attendance.
+    </div>
+  <% } %>
+</div>

@@ -1,0 +1,457 @@
+<%- include('../partials/header') %>
+<style>
+  .classes-wrap {
+    margin-top: 1.5rem;
+    max-width: 720px;
+  }
+
+  .classes-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .classes-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .classes-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .classes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .class-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .class-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .class-row__main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .class-row__name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+
+  .class-row__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(201, 106, 58, 0.14);
+    color: var(--primary);
+    white-space: nowrap;
+  }
+
+  .pill.secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+  }
+
+  .class-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.05s ease;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .sub-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 20px;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0 0.85rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.05s ease;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+   .sub-btn:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+  .btn:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .btn.primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+
+</style>
+
+<style>
+  .checkbox-wrapper-44 input[type="checkbox"] {
+    display: none;
+    visibility: hidden;
+  }
+
+  .checkbox-wrapper-44 *,
+  .checkbox-wrapper-44 *::before,
+  .checkbox-wrapper-44 *::after {
+    box-sizing: border-box;
+  }
+
+  .checkbox-wrapper-44 .toggleButton {
+    cursor: pointer;
+    display: block;
+    transform-origin: 50% 50%;
+    transform-style: preserve-3d;
+    transition: transform 0.14s ease;
+  }
+  .checkbox-wrapper-44 .toggleButton:active {
+    transform: rotateX(30deg);
+  }
+  .checkbox-wrapper-44 .toggleButton input + div {
+    border: 3px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    position: relative;
+    width: 44px;
+    height: 44px;
+  }
+  .checkbox-wrapper-44 .toggleButton input + div svg {
+    fill: none;
+    stroke-width: 3.6;
+    stroke: #000;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    width: 44px;
+    height: 44px;
+    display: block;
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    right: -3px;
+    bottom: -3px;
+    z-index: 1;
+    stroke-dashoffset: 124.6;
+    stroke-dasharray: 0 162.6 133 29.6;
+    transition: all 0.4s ease 0s;
+  }
+  .checkbox-wrapper-44 .toggleButton input + div:before,
+  .checkbox-wrapper-44 .toggleButton input + div:after {
+    content: "";
+    width: 3px;
+    height: 16px;
+    background: #000;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 5px;
+  }
+  .checkbox-wrapper-44 .toggleButton input + div:before {
+    opacity: 0;
+    transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    -webkit-animation: bounceInBefore-44 0.3s linear forwards 0.3s;
+            animation: bounceInBefore-44 0.3s linear forwards 0.3s;
+  }
+  .checkbox-wrapper-44 .toggleButton input + div:after {
+    opacity: 0;
+    transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    -webkit-animation: bounceInAfter-44 0.3s linear forwards 0.3s;
+            animation: bounceInAfter-44 0.3s linear forwards 0.3s;
+  }
+  .checkbox-wrapper-44 .toggleButton input:checked + div svg {
+    stroke-dashoffset: 162.6;
+    stroke-dasharray: 0 162.6 28 134.6;
+    transition: all 0.4s ease 0.2s;
+  }
+  .checkbox-wrapper-44 .toggleButton input:checked + div:before {
+    opacity: 0;
+    transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    -webkit-animation: bounceInBeforeDont-44 0.3s linear forwards 0s;
+            animation: bounceInBeforeDont-44 0.3s linear forwards 0s;
+  }
+  .checkbox-wrapper-44 .toggleButton input:checked + div:after {
+    opacity: 0;
+    transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    -webkit-animation: bounceInAfterDont-44 0.3s linear forwards 0s;
+            animation: bounceInAfterDont-44 0.3s linear forwards 0s;
+  }
+  .submit-area{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.submit-area input{
+  height: 36px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+  @-webkit-keyframes bounceInBefore-44 {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.1) translate(-50%, -50%) rotate(45deg);
+    }
+    80% {
+      opacity: 1;
+      transform: scale(0.89) translate(-50%, -50%) rotate(45deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(45deg);
+    }
+  }
+
+  @keyframes bounceInBefore-44 {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.1) translate(-50%, -50%) rotate(45deg);
+    }
+    80% {
+      opacity: 1;
+      transform: scale(0.89) translate(-50%, -50%) rotate(45deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(45deg);
+    }
+  }
+  @-webkit-keyframes bounceInAfter-44 {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.1) translate(-50%, -50%) rotate(-45deg);
+    }
+    80% {
+      opacity: 1;
+      transform: scale(0.89) translate(-50%, -50%) rotate(-45deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
+    }
+  }
+  @keyframes bounceInAfter-44 {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.1) translate(-50%, -50%) rotate(-45deg);
+    }
+    80% {
+      opacity: 1;
+      transform: scale(0.89) translate(-50%, -50%) rotate(-45deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
+    }
+  }
+  @-webkit-keyframes bounceInBeforeDont-44 {
+    0% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(45deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    }
+  }
+  @keyframes bounceInBeforeDont-44 {
+    0% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(45deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
+    }
+  }
+  @-webkit-keyframes bounceInAfterDont-44 {
+    0% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    }
+  }
+  @keyframes bounceInAfterDont-44 {
+    0% {
+      opacity: 1;
+      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
+    }
+  }
+</style>
+
+
+<div class="classes-wrap">
+  <div class="classes-header">
+    <div>
+      <h1 class="classes-title" ><%= className %>الطالبات</h1>
+      <p class="classes-subtitle"></p>
+      <p class="classes-subtitle"> <%= teacherName %> :المعلمة الحالية</p>
+    </div>
+  </div>
+
+  <form method="POST" action="/attendance">
+  <input type="hidden" name="classID" value="<%= classID %>">
+  <input type="hidden" name="currentTeacherID" value="<%= classRow ? classRow.currentTeacherID : '' %>">
+
+  <% if (students && students.length) { %>
+      <div class="classes-list">
+        <% students.forEach(s => { %>
+          <div class="class-row">
+            <div class="class-row__main">
+              <h2 class="class-row__name" id="<%= s.studentID %>"><%= s.studentName %></h2>
+            </div>
+
+            <div class="class-row__actions">
+  <!-- default 0 if unchecked -->
+  <input type="hidden" name="<%= s.studentID %>" value="0">
+
+  <div class="checkbox-wrapper-44">
+    <label class="toggleButton">
+
+      <input
+        type="checkbox"
+        name="<%= s.studentID %>"
+        value="1"
+        aria-label="Mark <%= s.studentName %> present"
+        <%= s.status ? "checked" : "" %>
+      >
+
+      <div>
+        <svg viewBox="0 0 44 44">
+          <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2.000000, -2.000000)"></path>
+        </svg>
+      </div>
+
+    </label>
+  </div>
+</div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        لم يتم العثور على أي طلاب حتى الآن. أضف طالبًا لبدء تسجيل الحضور.
+      </div>
+    <% } %>
+
+    <br>
+    <div class="submit-area">
+  <input type="text" name="currentTeacher" id="currentTeacherID"> placeholder="اسم المعلمة">
+
+    <button type="submit" class="sub-btn">إرسال الحضور</button> <p class="classes-subtitle">Last updated: <%= date ? new Date(date).toLocaleString() : "No submissions yet" %> by <%= teacherName %></p>
+    </div>
+  </form>
+</div>

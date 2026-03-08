@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "start": "node app.js",
+    "development": "npx nodemon app.js",
+    "production": "npx forever start app.js",
+    "stop_production": "npx forever stop app.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "forever": "^4.0.3",
+    "mysql2": "^3.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
