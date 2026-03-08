@@ -156,8 +156,8 @@
 <div class="classes-wrap">
   <div class="classes-header">
     <div>
-      <h1 class="classes-title">Classes</h1>
-      <p class="classes-subtitle">Pick a class to take attendance.</p>
+      <h1 class="classes-title">فصول</h1>
+      <p class="classes-subtitle">اختر فصلاً دراسياً لتسجيل الحضور.</p>
     </div>
   </div>
 
@@ -172,7 +172,7 @@
               <% if (c.teacherName) { %>
                 <span class="pill">👩‍🏫 <%= c.teacherName %></span>
               <% } else { %>
-                <span class="pill secondary">No teacher assigned</span>
+                <span class="pill secondary">لم يتم تعيين أي معلم</span>
               <% } %>
             </div>
           </div>
@@ -185,7 +185,7 @@
     </div>
   <% } else { %>
     <div class="empty-state">
-      No classes found yet. Add a class to start taking attendance.
+      لم يتم العثور على أي صفوف حتى الآن. أضف صفًا لبدء تسجيل الحضور.
     </div>
   <% } %>
 </div>
