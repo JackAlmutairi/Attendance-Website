@@ -7,7 +7,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const session = require('express-session');
 const db = require('./db-connector');
 
 app.set('view engine', 'ejs');
@@ -15,7 +15,51 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', async function (req, res) {
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallbacksecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false
+  }
+}));
+
+function requireLogin(req, res, next) {
+  if (req.session && req.session.loggedIn) {
+    return next();
+  }
+
+  res.redirect('/login');
+}
+
+app.get('/login', (req, res) => {
+  res.render('login', { error: null });
+});
+
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  if (
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    req.session.loggedIn = true;
+    req.session.username = username;
+    return res.redirect('/');
+  }
+
+  res.render('login', { error: 'Invalid username or password' });
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+
+app.get('/', requireLogin, async function (req, res) {
 
     const query ='SELECT classID, className, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID';
 
@@ -26,7 +70,7 @@ app.get('/', async function (req, res) {
     });
 });
 
-app.get('/attendance', async function (req, res) {
+app.get('/attendance', requireLogin, async function (req, res) {
     const classID= req.query.classID;
 
     try {
@@ -55,7 +99,7 @@ app.get('/attendance', async function (req, res) {
 });
 
 
-app.post('/attendance', async (req, res) => {
+app.post('/attendance', requireLogin, async (req, res) => {
   try {
     const classID = req.body.classID;
     const teacherName = req.body.currentTeacher ? req.body.currentTeacher.trim() : "";
