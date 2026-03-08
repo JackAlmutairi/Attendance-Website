@@ -43,6 +43,7 @@ body{
   padding:0 1.875rem 3rem;
   line-height:1.6;
   font-size:1.05rem;
+  overflow-x: hidden
 }
 
 /* ===== Nav ===== */
@@ -56,9 +57,11 @@ nav{
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
 }
-.nav-inner{
-  position:relative;
-  padding:0 1.875rem;
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
 }
 .nav-title{
   position:absolute;
@@ -294,11 +297,10 @@ form button:focus-visible{ outline:2px solid rgba(31,111,235,.35); outline-offse
 }
 .data-list li:last-child{ border-bottom:none; }
 
-.nav-center-logo{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%, -50%);
+.nav-center-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .nav-center-logo img{
@@ -317,9 +319,26 @@ th,td{
 }
 th{ color:var(--text); font-weight:900; background:rgba(11,61,145,.04); }
 tr:hover td{ background:rgba(11,61,145,.03); }
+.nav-logout {
+  margin-left: auto;
+}
+
+.logout-btn {
+  background: #306C86;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #25566b;
+}
   </style>
 </head>
 <body>
+
 <nav>
   <div class="nav-inner">
 
@@ -336,7 +355,11 @@ tr:hover td{ background:rgba(11,61,145,.03); }
     <div class="nav-center-logo">
       <img src="/images/logo.png" alt="School Logo">
     </div>
-    <a href="/logout">Logout</a>
+
+    <!-- Right: Logout button -->
+    <div class="nav-logout">
+      <a href="/logout" class="logout-btn">تسجيل الخروج</a>
+    </div>
 
   </div>
 </nav>

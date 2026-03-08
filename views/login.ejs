@@ -22,11 +22,11 @@ body {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>تسجيل الدخول</title>
 </head>
 <body>
   <div class="login-container">
-    <h1>Login</h1>
+    <h1>تسجيل الدخول</h1>
 
     <% if (error) { %>
       <p style="color: red;"><%= error %></p>
@@ -34,16 +34,16 @@ body {
 
     <form action="/login" method="POST">
       <div>
-        <label>Username</label>
+        <label>اسم المستخدم </label>
         <input type="text" name="username" required>
       </div>
-
+      <br>
       <div>
-        <label>Password</label>
+        <label>كلمة المرور </label>
         <input type="password" name="password" required>
       </div>
-
-      <button type="submit">Enter</button>
+      <br>
+      <button type="submit">سجل</button>
     </form>
   </div>
 </body>
