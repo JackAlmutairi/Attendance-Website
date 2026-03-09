@@ -1,189 +1,147 @@
 <%- include('../partials/header') %>
+
 <style>
-    .dashboard-page {
-  padding: 32px;
-  background-color: #f5f8fb;
-  min-height: 100vh;
-}
-
-.dashboard-header {
-  margin-bottom: 24px;
-}
-
-.dashboard-header h1 {
-  margin: 0 0 8px 0;
-  color: #306C86;
-  font-size: 2rem;
-}
-
-.dashboard-header p {
-  margin: 0;
-  color: #5f6b76;
-  font-size: 1rem;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.dashboard-card {
-  background: #ffffff;
-  border: 1px solid #d9e4ec;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(24, 39, 75, 0.08);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.dashboard-card-top h2 {
-  margin: 0 0 18px 0;
-  color: #1f2d3d;
-  font-size: 1.2rem;
-}
-
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.stat-box {
-  background: #f7fafc;
-  border: 1px solid #e3edf4;
-  border-radius: 14px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.stat-box.wide {
-  grid-column: 1 / -1;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #6b7b88;
-}
-
-.stat-value {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #306C86;
-}
-
-.date-value {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.dashboard-card-footer {
-  margin-top: 18px;
-}
-
-.view-class-btn,
-.logout-btn {
-  display: inline-block;
-  background-color: #306C86;
-  color: #ffffff;
-  text-decoration: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-
-.view-class-btn:hover,
-.logout-btn:hover {
-  background-color: #25576d;
-}
-
-.nav-right-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
   .dashboard-page {
-    padding: 18px;
+  padding: 0;
+  background: var(--bg);
+  }
+
+  .dashboard-header {
+    margin-bottom: 24px;
   }
 
   .dashboard-header h1 {
-    font-size: 1.5rem;
+    margin: 0 0 8px 0;
+    color: var(--primary);
+    font-size: 2rem;
   }
 
   .dashboard-header p {
-    font-size: 0.95rem;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
   }
 
   .dashboard-grid {
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
   }
 
   .dashboard-card {
-    padding: 16px;
-    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .dashboard-card-top h2 {
-    font-size: 1.05rem;
-    margin-bottom: 14px;
-  }
-
-  .dashboard-stats {
-    gap: 10px;
-  }
-
-  .stat-box {
-    padding: 12px;
-  }
-
-  .stat-label {
-    font-size: 0.85rem;
-  }
-
-  .stat-value {
+    margin: 0 0 18px 0;
+    color: var(--text);
     font-size: 1.2rem;
   }
 
-  .date-value {
-    font-size: 0.95rem;
-  }
-
-  .view-class-btn,
-  .logout-btn {
-    min-height: 44px;
-    padding: 10px 14px;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard-page {
-    padding: 14px;
-  }
-
-  .dashboard-header h1 {
-    font-size: 1.3rem;
-  }
-
   .dashboard-stats {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
 
-  .view-class-btn,
-  .logout-btn {
-    width: 100%;
+  .stat-box {
+    background: rgba(48, 108, 134, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-}
 
+  .stat-box.wide {
+    grid-column: 1 / -1;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .date-value {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-page {
+      padding: 18px;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .dashboard-header p {
+      font-size: 0.95rem;
+    }
+
+    .dashboard-grid {
+      gap: 16px;
+    }
+
+    .dashboard-card {
+      padding: 16px;
+      border-radius: 14px;
+    }
+
+    .dashboard-card-top h2 {
+      font-size: 1.05rem;
+      margin-bottom: 14px;
+    }
+
+    .dashboard-stats {
+      gap: 10px;
+    }
+
+    .stat-box {
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+    }
+
+    .date-value {
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dashboard-page {
+      padding: 14px;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.3rem;
+    }
+
+    .dashboard-stats {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
 <main class="dashboard-page">
@@ -207,12 +165,12 @@
             </div>
 
             <div class="stat-box">
-              <span class="stat-label">غيابات</span>
+              <span class="stat-label">الغياب</span>
               <span class="stat-value"><%= card.totalAbsences || 0 %></span>
             </div>
 
             <div class="stat-box">
-              <span class="stat-label">حضور</span>
+              <span class="stat-label">الحضور</span>
               <span class="stat-value"><%= card.totalAttendees || 0 %></span>
             </div>
 
@@ -220,20 +178,21 @@
               <span class="stat-label">آخر تسجيل</span>
               <span class="stat-value date-value">
                 <%= card.lastAttendanceDate
-                ? new Date(card.lastAttendanceDate).toLocaleString('ar-KW', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }): 'No attendance yet' %>
+                  ? new Date(card.lastAttendanceDate).toLocaleString('ar-KW', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'لا يوجد تسجيل حضور بعد' %>
               </span>
             </div>
           </div>
         </div>
       <% }) %>
     <% } else { %>
-      <p>No classes found.</p>
+      <p>لم يتم العثور على أي صفوف.</p>
     <% } %>
   </section>
 </main>
