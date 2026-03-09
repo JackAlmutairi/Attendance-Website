@@ -205,31 +205,36 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
 });
 
 app.get('/attendance', requireAdmin, async function (req, res) {
-    const classID= req.query.classID;
+  const classID = req.query.classID;
 
-    try {
-        const classQuery = ('SELECT classID, className, currentTeacherID, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID WHERE classID=?');
-        const studentQuery = ('SELECT studentID, studentName, status FROM Students WHERE classID=? ORDER BY studentName ASC;');
-        const tName = ('SELECT teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID WHERE classID=?');
-        const getDate = 'SELECT attendenceDate FROM Attendence WHERE classID=? ORDER BY attendenceDate DESC LIMIT 1';
+  try {
+    const classQuery = 'SELECT classID, className, currentTeacherID, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID WHERE classID=?';
+    const studentQuery = 'SELECT studentID, studentName, status FROM Students WHERE classID=? ORDER BY studentName ASC;';
+    const getDate = 'SELECT attendenceDate FROM Attendence WHERE classID=? ORDER BY attendenceDate DESC LIMIT 1';
 
-        const [classRows] = await db.query(classQuery, [classID]);
-        const [students] = await db.query(studentQuery, [classID]);
-        const classRow = classRows[0];
-        const [lastUpdate] = await db.query(getDate, [classID]);
+    const [classRows] = await db.query(classQuery, [classID]);
+
+    if (!classRows.length) {
+      return res.status(404).send("Class not found");
+    }
+
+    const [students] = await db.query(studentQuery, [classID]);
+    const [lastUpdate] = await db.query(getDate, [classID]);
+
+    const classRow = classRows[0];
 
     res.render('attendance', {
-        teacherName: classRow.teacherName,
-        students: students,
-        classID: classID,
-        classRow: classRows[0],
-        className: classRows[0].className,
-        date: lastUpdate.length ? lastUpdate[0].attendenceDate : null
+      teacherName: classRow.teacherName,
+      students: students,
+      classID: classID,
+      classRow: classRow,
+      className: classRow.className,
+      date: lastUpdate.length ? lastUpdate[0].attendenceDate : null
     });
-    } catch(error) {
-        console.error(error);
-        res.status(500).send("Database Error")
-    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database Error");
+  }
 });
 
 

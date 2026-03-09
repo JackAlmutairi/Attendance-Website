@@ -11,7 +11,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE Teachers (
     teacherID int AUTO_INCREMENT NOT NULL,
-    teacherName varchar(100) NOT NULL,
+    teacherName varchar(100) NOT NULL UNIQUE,
 
 
     PRIMARY KEY (teacherID)
@@ -24,11 +24,13 @@ CREATE TABLE Classes (
 
     PRIMARY KEY (classID),
     FOREIGN KEY (currentTeacherID) REFERENCES Teachers(teacherID)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
 );
 
 CREATE TABLE Students (
     studentID int AUTO_INCREMENT NOT NULL,
-    studentName varchar(100),
+    studentName varchar(100) NOT NULL,
     classID int NOT NULL,
     status varchar(20) NOT NULL DEFAULT 'Present',
 
@@ -50,9 +52,15 @@ CREATE TABLE Attendence (
     PRIMARY KEY (attendenceID),
 
     FOREIGN KEY (classID) REFERENCES Classes(classID)
+    ON UPDATE CASCADE
     ON DELETE CASCADE,
-    FOREIGN KEY (studentID) REFERENCES Students(studentID),
+    FOREIGN KEY (studentID) REFERENCES Students(studentID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
     FOREIGN KEY (currentTeacherID) REFERENCES Teachers(teacherID)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
 );
 
 INSERT INTO Classes (className, currentTeacherID) VALUES
@@ -77,7 +85,7 @@ INSERT INTO Classes (className, currentTeacherID) VALUES
 ('9-4', NULL);
 
 CREATE TABLE temp_students (
-    studentName VARCHAR(255),
+    studentName VARCHAR(255) NOT NULL,
     sector INT
 ) CHARACTER SET utf8mb4;
 
@@ -97,7 +105,7 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    0
+    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('6-', t.sector);
@@ -120,7 +128,7 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    0
+    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('7-', t.sector);
@@ -144,7 +152,7 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    0
+    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('8-', t.sector);
@@ -169,7 +177,7 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    0
+    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('9-', t.sector);
