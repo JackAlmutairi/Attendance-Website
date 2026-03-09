@@ -23,6 +23,10 @@ app.use(session({
     secure: false
   }
 }));
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
 
 function requireLogin(req, res, next) {
   if (req.session && req.session.loggedIn) {
@@ -47,6 +51,10 @@ function requireSuperAdmin(req, res, next) {
   res.redirect('/login');
 }
 
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
@@ -100,55 +108,100 @@ app.get('/', requireAdmin, async function (req, res) {
 
 app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
   try {
-const query = `
-  SELECT
-    c.classID,
-    c.className,
+    const query = `
+      SELECT
+        c.classID,
+        c.className,
 
-    (
-      SELECT COUNT(*)
-      FROM Students s
-      WHERE s.classID = c.classID
-    ) AS totalStudents,
+        (
+          SELECT COUNT(*)
+          FROM Students s
+          WHERE s.classID = c.classID
+        ) AS totalStudents,
 
-    (
-      SELECT COUNT(*)
-      FROM Attendence a
-      WHERE a.classID = c.classID
-      AND DATE(a.attendenceDate) = (
-        SELECT DATE(MAX(a2.attendenceDate))
-        FROM Attendence a2
-        WHERE a2.classID = c.classID
-      )
-      AND a.status = 'Absent'
-    ) AS totalAbsences,
+        (
+          SELECT COUNT(*)
+          FROM Attendence a
+          WHERE a.classID = c.classID
+            AND a.attendenceDate = (
+              SELECT MAX(a2.attendenceDate)
+              FROM Attendence a2
+              WHERE a2.classID = c.classID
+            )
+            AND a.status = 'Absent'
+        ) AS totalAbsences,
 
-    (
-      SELECT COUNT(*)
-      FROM Attendence a
-      WHERE a.classID = c.classID
-      AND DATE(a.attendenceDate) = (
-        SELECT DATE(MAX(a2.attendenceDate))
-        FROM Attendence a2
-        WHERE a2.classID = c.classID
-      )
-      AND a.status = 'Present'
-    ) AS totalAttendees,
+        (
+          SELECT COUNT(*)
+          FROM Attendence a
+          WHERE a.classID = c.classID
+            AND a.attendenceDate = (
+              SELECT MAX(a2.attendenceDate)
+              FROM Attendence a2
+              WHERE a2.classID = c.classID
+            )
+            AND a.status = 'Present'
+        ) AS totalAttendees,
 
-    (
-      SELECT MAX(a.attendenceDate)
-      FROM Attendence a
-      WHERE a.classID = c.classID
-    ) AS lastAttendanceDate
+        (
+          SELECT MAX(a.attendenceDate)
+          FROM Attendence a
+          WHERE a.classID = c.classID
+        ) AS lastAttendanceDate
 
-  FROM Classes c
-  ORDER BY c.className ASC
-`;
+      FROM Classes c
+      ORDER BY c.className ASC
+    `;
 
     const [cards] = await db.query(query);
 
     res.render('superadmin-dashboard', {
       cards: cards
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Database Error');
+  }
+});
+
+app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) => {
+  try {
+    const selectedDate = req.query.selectedDate || '';
+    let records = [];
+
+    if (selectedDate) {
+      const query = `
+        SELECT
+          DATE(a.attendenceDate) AS attendanceDate,
+          c.className,
+          COUNT(*) AS totalStudents,
+          SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
+          SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent
+        FROM Attendence a
+        JOIN Classes c ON a.classID = c.classID
+        JOIN (
+          SELECT
+            classID,
+            DATE(attendenceDate) AS attendanceDay,
+            MAX(attendenceDate) AS latestSubmission
+          FROM Attendence
+          WHERE DATE(attendenceDate) = ?
+          GROUP BY classID, DATE(attendenceDate)
+        ) latest
+          ON a.classID = latest.classID
+          AND DATE(a.attendenceDate) = latest.attendanceDay
+          AND a.attendenceDate = latest.latestSubmission
+        GROUP BY DATE(a.attendenceDate), c.className
+        ORDER BY c.className ASC
+      `;
+
+      const [rows] = await db.query(query, [selectedDate]);
+      records = rows;
+    }
+
+    res.render('superadmin-attendance-records', {
+      records,
+      selectedDate
     });
   } catch (error) {
     console.error(error);
@@ -189,6 +242,7 @@ app.post('/attendance', requireAdmin, async (req, res) => {
   try {
     const classID = req.body.classID;
     const teacherName = req.body.currentTeacher ? req.body.currentTeacher.trim() : "";
+    const submissionTime = new Date();
 
     let teacherID = null;
 
@@ -239,8 +293,8 @@ app.post('/attendance', requireAdmin, async (req, res) => {
       );
 
       await db.query(
-        "INSERT INTO Attendence (attendenceDate, classID, studentID, currentTeacherID, status) VALUES (NOW(), ?, ?, ?, ?)",
-        [classID, studentID, teacherID, status]
+        "INSERT INTO Attendence (attendenceDate, classID, studentID, currentTeacherID, status) VALUES (?, ?, ?, ?, ?)",
+        [submissionTime, classID, studentID, teacherID, status]
       );
     }
 

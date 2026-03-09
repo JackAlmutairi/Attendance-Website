@@ -301,10 +301,12 @@ form button:focus-visible{ outline:2px solid rgba(31,111,235,.35); outline-offse
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  padding-top: 8px;
+  padding-bottom: 5px;
 }
 
 .nav-center-logo img{
-  height: 112px;
+  height: 100px;
   width:auto;
 }
 table{
@@ -356,9 +358,24 @@ tr:hover td{ background:rgba(11,61,145,.03); }
       <img src="/images/logo.png" alt="School Logo">
     </div>
 
-    <!-- Right: Logout button -->
+    <!-- Right side buttons -->
     <div class="nav-logout">
-      <a href="/logout" class="logout-btn">تسجيل الخروج</a>
+      <a href="/logout" class="logout-btn">
+        تسجيل الخروج
+      </a>
+
+      <% if (session && session.role === 'superadmin') { %>
+
+        <a href="/superadmin/dashboard" class="logout-btn">
+          لوحة الحضور
+        </a>
+
+        <a href="/superadmin/attendance-records" class="logout-btn">
+          عرض الحضور
+        </a>
+
+      <% } %>
+
     </div>
 
   </div>

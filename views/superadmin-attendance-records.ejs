@@ -1,0 +1,142 @@
+<%- include('../partials/header') %>
+
+<style>
+  .page-wrap {
+    margin-top: 1.5rem;
+    max-width: 1100px;
+  }
+
+  .page-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .page-subtitle {
+    margin: 0 0 1rem 0;
+    color: var(--text-muted);
+  }
+
+  .filter-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .filter-form input[type="date"] {
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font: inherit;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0 0.9rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .records-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .records-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .records-table th,
+  .records-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .records-table th {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .empty-state {
+    padding: 1.5rem;
+    color: var(--text-muted);
+  }
+</style>
+
+<div class="page-wrap">
+  <h1 class="page-title">سجلات الحضور</h1>
+  <p class="page-subtitle">اختر تاريخًا لعرض جميع سجلات الحضور من ذلك اليوم فقط</p>
+
+  <form method="GET" action="/superadmin/attendance-records" class="filter-form">
+    <input type="date" name="selectedDate" value="<%= selectedDate || '' %>">
+    <button type="submit" class="btn primary">ظهار السجلات</button>
+    <a href="/superadmin/attendance-records" class="btn">امسح</a>
+  </form>
+
+  <div class="records-card">
+    <% if (records && records.length) { %>
+      <table class="records-table">
+        <thead>
+          <th>تاريخ</th>
+            <th>فصل</th>
+            <th>إجمالي الطالبات</th>
+            <th>غياب</th>
+            <th>الحضور</th>
+        </thead>
+        <tbody>
+  <% records.forEach(r => { %>
+    <tr>
+      <td>
+        <%= new Date(r.attendanceDate).toLocaleDateString('ar-KW', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+        }) %>
+      </td>
+      <td><%= r.className %></td>
+      <td><%= r.totalStudents %></td>
+      <td><%= r.totalAbsent %></td>
+      <td><%= r.totalPresent %></td>
+    </tr>
+  <% }) %>
+</tbody>
+      </table>
+    <% } else { %>
+      <div class="empty-state">
+        لم يتم العثور على سجلات حضور لهذا التاريخ
+      </div>
+    <% } %>
+  </div>
+</div>
