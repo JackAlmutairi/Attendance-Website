@@ -31,6 +31,21 @@ function requireLogin(req, res, next) {
 
   res.redirect('/login');
 }
+function requireAdmin(req, res, next) {
+  if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin')) {
+    return next();
+  }
+
+  res.redirect('/login');
+}
+
+function requireSuperAdmin(req, res, next) {
+  if (req.session && req.session.role === 'superadmin') {
+    return next();
+  }
+
+  res.redirect('/login');
+}
 
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
@@ -41,11 +56,24 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
 
   if (
+    username === process.env.SUPERADMIN_USERNAME &&
+    password === process.env.SUPERADMIN_PASSWORD
+  ) {
+    req.session.loggedIn = true;
+    req.session.role = 'superadmin';
+    req.session.username = username;
+
+    return res.redirect('/superadmin/dashboard');
+  }
+
+  if (
     username === process.env.ADMIN_USERNAME &&
     password === process.env.ADMIN_PASSWORD
   ) {
     req.session.loggedIn = true;
+    req.session.role = 'admin';
     req.session.username = username;
+
     return res.redirect('/');
   }
 
@@ -59,7 +87,7 @@ app.get('/logout', (req, res) => {
 });
 
 
-app.get('/', requireLogin, async function (req, res) {
+app.get('/', requireAdmin, async function (req, res) {
 
     const query ='SELECT classID, className, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID';
 
@@ -70,7 +98,35 @@ app.get('/', requireLogin, async function (req, res) {
     });
 });
 
-app.get('/attendance', requireLogin, async function (req, res) {
+app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        c.classID,
+        c.className,
+        COUNT(DISTINCT s.studentID) AS totalStudents,
+        SUM(CASE WHEN s.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsences,
+        SUM(CASE WHEN s.status = 'Present' THEN 1 ELSE 0 END) AS totalAttendees,
+        MAX(a.attendenceDate) AS lastAttendanceDate
+      FROM Classes c
+      LEFT JOIN Students s ON c.classID = s.classID
+      LEFT JOIN Attendence a ON c.classID = a.classID
+      GROUP BY c.classID, c.className
+      ORDER BY c.className ASC
+    `;
+
+    const [cards] = await db.query(query);
+
+    res.render('superadmin-dashboard', {
+      cards: cards
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Database Error');
+  }
+});
+
+app.get('/attendance', requireAdmin, async function (req, res) {
     const classID= req.query.classID;
 
     try {
@@ -99,7 +155,7 @@ app.get('/attendance', requireLogin, async function (req, res) {
 });
 
 
-app.post('/attendance', requireLogin, async (req, res) => {
+app.post('/attendance', requireAdmin, async (req, res) => {
   try {
     const classID = req.body.classID;
     const teacherName = req.body.currentTeacher ? req.body.currentTeacher.trim() : "";

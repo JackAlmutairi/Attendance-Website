@@ -1,0 +1,162 @@
+<%- include('../partials/header') %>
+<style>
+    .dashboard-page {
+  padding: 32px;
+  background-color: #f5f8fb;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 8px 0;
+  color: #306C86;
+  font-size: 2rem;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: #5f6b76;
+  font-size: 1rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border: 1px solid #d9e4ec;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(24, 39, 75, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboard-card-top h2 {
+  margin: 0 0 18px 0;
+  color: #1f2d3d;
+  font-size: 1.2rem;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.stat-box {
+  background: #f7fafc;
+  border: 1px solid #e3edf4;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-box.wide {
+  grid-column: 1 / -1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6b7b88;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #306C86;
+}
+
+.date-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dashboard-card-footer {
+  margin-top: 18px;
+}
+
+.view-class-btn,
+.logout-btn {
+  display: inline-block;
+  background-color: #306C86;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.view-class-btn:hover,
+.logout-btn:hover {
+  background-color: #25576d;
+}
+
+.nav-right-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+</style>
+
+<main class="dashboard-page">
+  <section class="dashboard-header">
+    <h1>Attendance Dashboard</h1>
+    <p>Overview of attendance by class</p>
+  </section>
+
+  <section class="dashboard-grid">
+    <% if (cards && cards.length > 0) { %>
+      <% cards.forEach(card => { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-top">
+            <h2><%= card.className %></h2>
+          </div>
+
+          <div class="dashboard-stats">
+            <div class="stat-box">
+              <span class="stat-label">Students</span>
+              <span class="stat-value"><%= card.totalStudents || 0 %></span>
+            </div>
+
+            <div class="stat-box">
+              <span class="stat-label">Absent</span>
+              <span class="stat-value"><%= card.totalAbsences || 0 %></span>
+            </div>
+
+            <div class="stat-box">
+              <span class="stat-label">Present</span>
+              <span class="stat-value"><%= card.totalAttendees || 0 %></span>
+            </div>
+
+            <div class="stat-box wide">
+              <span class="stat-label">Last Attendance</span>
+              <span class="stat-value date-value">
+                <%= card.lastAttendanceDate
+                  ? new Date(card.lastAttendanceDate).toLocaleDateString()
+                  : 'No attendance yet' %>
+              </span>
+            </div>
+          </div>
+
+          <div class="dashboard-card-footer">
+            <a href="/attendance?classID=<%= card.classID %>" class="view-class-btn">Open Class</a>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No classes found.</p>
+    <% } %>
+  </section>
+</main>
