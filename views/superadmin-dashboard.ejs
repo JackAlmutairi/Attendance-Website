@@ -112,8 +112,8 @@
 
 <main class="dashboard-page">
   <section class="dashboard-header">
-    <h1>Attendance Dashboard</h1>
-    <p>Overview of attendance by class</p>
+    <h1>لوحة الحضور</h1>
+    <p>نظرة عامة على الحضور حسب الصف</p>
   </section>
 
   <section class="dashboard-grid">
@@ -126,22 +126,22 @@
 
           <div class="dashboard-stats">
             <div class="stat-box">
-              <span class="stat-label">Students</span>
+              <span class="stat-label">الطالبات</span>
               <span class="stat-value"><%= card.totalStudents || 0 %></span>
             </div>
 
             <div class="stat-box">
-              <span class="stat-label">Absent</span>
+              <span class="stat-label">غيابات</span>
               <span class="stat-value"><%= card.totalAbsences || 0 %></span>
             </div>
 
             <div class="stat-box">
-              <span class="stat-label">Present</span>
+              <span class="stat-label">حضور</span>
               <span class="stat-value"><%= card.totalAttendees || 0 %></span>
             </div>
 
             <div class="stat-box wide">
-              <span class="stat-label">Last Attendance</span>
+              <span class="stat-label">آخر تسجيل</span>
               <span class="stat-value date-value">
                 <%= card.lastAttendanceDate
                 ? new Date(card.lastAttendanceDate).toLocaleString('en-US', {
