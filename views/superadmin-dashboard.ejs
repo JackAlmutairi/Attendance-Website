@@ -144,8 +144,13 @@
               <span class="stat-label">Last Attendance</span>
               <span class="stat-value date-value">
                 <%= card.lastAttendanceDate
-                  ? new Date(card.lastAttendanceDate).toLocaleDateString()
-                  : 'No attendance yet' %>
+                ? new Date(card.lastAttendanceDate).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }): 'No attendance yet' %>
               </span>
             </div>
           </div>
