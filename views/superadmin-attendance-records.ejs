@@ -19,21 +19,22 @@
   }
 
   .filter-form {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-    padding: 0.85rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    max-width: 520px;
-    width: 100%;
-  }
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  max-width: 520px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-  .filter-form input[type="date"] {
+.filter-form input[type="date"] {
   padding: 0.65rem 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -42,6 +43,7 @@
   margin: 0;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
@@ -92,20 +94,19 @@
     }
 
     .filter-form {
-      padding: 0.75rem;
-      gap: 0.6rem;
-      max-width: 100%;
-    }
+    padding: 0.75rem;
+    gap: 0.6rem;
+    max-width: 100%;
+  }
 
-    .filter-form input[type="date"] {
-      width: 100%;
-      min-height: 44px;
-    }
-
+    .filter-form input[type="date"],
     .filter-form .btn {
-      width: 100%;
-      min-height: 44px;
-    }
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+}
+
 
     .records-table th,
     .records-table td {
@@ -120,9 +121,10 @@
 
   @media (max-width: 480px) {
     .filter-form {
-      flex-direction: column;
-      align-items: stretch;
-    }
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 
     .page-title {
       font-size: 1.1rem;
@@ -141,6 +143,7 @@
   <p class="page-subtitle">اختر تاريخًا لعرض جميع سجلات الحضور من ذلك اليوم فقط</p>
 
   <form method="GET" action="/superadmin/attendance-records" class="filter-form">
+    <label for="date" >اختر التاريخ</label>
     <input type="date" name="selectedDate" value="<%= selectedDate || '' %>">
     <button type="submit" class="btn primary">إظهار السجلات</button>
     <a href="/superadmin/attendance-records" class="btn">امسح</a>
