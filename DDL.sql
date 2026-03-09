@@ -30,7 +30,7 @@ CREATE TABLE Students (
     studentID int AUTO_INCREMENT NOT NULL,
     studentName varchar(100),
     classID int NOT NULL,
-    status bool,
+    status varchar(20) NOT NULL DEFAULT 'Present',
 
     PRIMARY KEY (studentID),
     FOREIGN KEY (classID) REFERENCES Classes(classID)
@@ -45,6 +45,7 @@ CREATE TABLE Attendence (
     classID int NOT NULL,
     studentID int NOT NULL,
     currentTeacherID int DEFAULT NULL,
+    status varchar(20) NOT NULL DEFAULT 'Present',
 
     PRIMARY KEY (attendenceID),
 
