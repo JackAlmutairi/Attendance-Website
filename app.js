@@ -100,40 +100,50 @@ app.get('/', requireAdmin, async function (req, res) {
 
 app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
   try {
-    const query = `
-      SELECT
-        c.classID,
-        c.className,
+const query = `
+  SELECT
+    c.classID,
+    c.className,
 
-        (
-          SELECT COUNT(*)
-          FROM Students s
-          WHERE s.classID = c.classID
-        ) AS totalStudents,
+    (
+      SELECT COUNT(*)
+      FROM Students s
+      WHERE s.classID = c.classID
+    ) AS totalStudents,
 
-        (
-          SELECT COUNT(*)
-          FROM Students s
-          WHERE s.classID = c.classID
-          AND s.status = 'Absent'
-        ) AS totalAbsences,
+    (
+      SELECT COUNT(*)
+      FROM Attendence a
+      WHERE a.classID = c.classID
+      AND DATE(a.attendenceDate) = (
+        SELECT DATE(MAX(a2.attendenceDate))
+        FROM Attendence a2
+        WHERE a2.classID = c.classID
+      )
+      AND a.status = 'Absent'
+    ) AS totalAbsences,
 
-        (
-          SELECT COUNT(*)
-          FROM Students s
-          WHERE s.classID = c.classID
-          AND s.status = 'Present'
-        ) AS totalAttendees,
+    (
+      SELECT COUNT(*)
+      FROM Attendence a
+      WHERE a.classID = c.classID
+      AND DATE(a.attendenceDate) = (
+        SELECT DATE(MAX(a2.attendenceDate))
+        FROM Attendence a2
+        WHERE a2.classID = c.classID
+      )
+      AND a.status = 'Present'
+    ) AS totalAttendees,
 
-        (
-          SELECT MAX(a.attendenceDate)
-          FROM Attendence a
-          WHERE a.classID = c.classID
-        ) AS lastAttendanceDate
+    (
+      SELECT MAX(a.attendenceDate)
+      FROM Attendence a
+      WHERE a.classID = c.classID
+    ) AS lastAttendanceDate
 
-      FROM Classes c
-      ORDER BY c.className ASC
-    `;
+  FROM Classes c
+  ORDER BY c.className ASC
+`;
 
     const [cards] = await db.query(query);
 
@@ -229,8 +239,8 @@ app.post('/attendance', requireAdmin, async (req, res) => {
       );
 
       await db.query(
-        "INSERT INTO Attendence (attendenceDate, classID, studentID, currentTeacherID) VALUES (NOW(), ?, ?, ?)",
-        [classID, studentID, teacherID]
+        "INSERT INTO Attendence (attendenceDate, classID, studentID, currentTeacherID, status) VALUES (NOW(), ?, ?, ?, ?)",
+        [classID, studentID, teacherID, status]
       );
     }
 
