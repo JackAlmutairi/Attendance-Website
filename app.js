@@ -104,14 +104,34 @@ app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
       SELECT
         c.classID,
         c.className,
-        COUNT(DISTINCT s.studentID) AS totalStudents,
-        SUM(CASE WHEN s.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsences,
-        SUM(CASE WHEN s.status = 'Present' THEN 1 ELSE 0 END) AS totalAttendees,
-        MAX(a.attendenceDate) AS lastAttendanceDate
+
+        (
+          SELECT COUNT(*)
+          FROM Students s
+          WHERE s.classID = c.classID
+        ) AS totalStudents,
+
+        (
+          SELECT COUNT(*)
+          FROM Students s
+          WHERE s.classID = c.classID
+          AND s.status = 'Absent'
+        ) AS totalAbsences,
+
+        (
+          SELECT COUNT(*)
+          FROM Students s
+          WHERE s.classID = c.classID
+          AND s.status = 'Present'
+        ) AS totalAttendees,
+
+        (
+          SELECT MAX(a.attendenceDate)
+          FROM Attendence a
+          WHERE a.classID = c.classID
+        ) AS lastAttendanceDate
+
       FROM Classes c
-      LEFT JOIN Students s ON c.classID = s.classID
-      LEFT JOIN Attendence a ON c.classID = a.classID
-      GROUP BY c.classID, c.className
       ORDER BY c.className ASC
     `;
 
