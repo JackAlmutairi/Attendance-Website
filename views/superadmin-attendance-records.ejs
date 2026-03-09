@@ -18,26 +18,42 @@
     color: var(--text-muted);
   }
 
+.filter-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  max-width: 520px;
+  width: 100%;
+}
+
+.filter-form input[type="date"] {
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font: inherit;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
   .filter-form {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-    padding: 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    padding: 0.75rem;
+    max-width: 100%;
   }
 
-  .filter-form input[type="date"] {
-    padding: 0.65rem 0.8rem;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #fff;
-    font: inherit;
+  .filter-form input[type="date"],
+  .filter-form .btn {
+    width: 100%;
+    min-height: 44px;
   }
+}
 
   .btn {
     display: inline-flex;
