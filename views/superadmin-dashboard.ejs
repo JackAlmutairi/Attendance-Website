@@ -106,6 +106,82 @@
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 18px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-header p {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-grid {
+    gap: 16px;
+  }
+
+  .dashboard-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .dashboard-card-top h2 {
+    font-size: 1.05rem;
+    margin-bottom: 14px;
+  }
+
+  .dashboard-stats {
+    gap: 10px;
+  }
+
+  .stat-box {
+    padding: 12px;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .date-value {
+    font-size: 0.95rem;
+  }
+
+  .view-class-btn,
+  .logout-btn {
+    min-height: 44px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-page {
+    padding: 14px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .view-class-btn,
+  .logout-btn {
+    width: 100%;
+  }
 }
 
 </style>

@@ -40,10 +40,17 @@ body{
   color:var(--text);
   max-width:1080px;
   margin:0 auto;
-  padding:0 1.875rem 3rem;
+  padding:0 1.25rem 3rem;
   line-height:1.6;
   font-size:1.05rem;
-  overflow-x: hidden
+  overflow-x:hidden;
+}
+
+@media (max-width: 768px){
+  body{
+    padding:0 0.9rem 2rem;
+    font-size:1rem;
+  }
 }
 
 /* ===== Nav ===== */
@@ -58,10 +65,15 @@ nav{
   border-bottom:1px solid var(--border);
 }
 .nav-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+  gap:12px;
+  max-width:1080px;
+  margin:0 auto;
+  padding:0 1rem;
+  flex-wrap:wrap;
 }
 .nav-title{
   position:absolute;
@@ -228,6 +240,7 @@ form{
   padding:1.5rem;
   box-shadow:var(--shadow-sm);
   max-width:630px;
+  width:100%;
 }
 form label{
   display:block;
@@ -309,11 +322,31 @@ form button:focus-visible{ outline:2px solid rgba(31,111,235,.35); outline-offse
   height: 100px;
   width:auto;
 }
+
+@media (max-width: 768px){
+  .nav-center-logo{
+    position: static;
+    left: auto;
+    transform: none;
+    order: -1;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    padding-top:0;
+    padding-bottom:0.25rem;
+  }
+
+  .nav-center-logo img{
+    height:70px;
+    width:auto;
+  }
+}
 table{
   width:100%;
   border-collapse:collapse;
   background:var(--surface);
 }
+
 th,td{
   padding:.9rem 1rem;
   border-bottom:1px solid var(--border);
@@ -321,17 +354,62 @@ th,td{
 }
 th{ color:var(--text); font-weight:900; background:rgba(11,61,145,.04); }
 tr:hover td{ background:rgba(11,61,145,.03); }
+
 .nav-logout {
-  margin-left: auto;
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
 }
 
 .logout-btn {
-  background: #306C86;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
+  background:#306C86;
+  color:white;
+  padding:10px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:500;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  text-align:center;
+}
+
+.logout-btn:hover {
+  background:#25566b;
+}
+
+@media (max-width: 768px){
+  .logout-btn{
+    font-size:0.95rem;
+    padding:10px 12px;
+  }
+}
+
+@media (max-width: 768px){
+  .nav-logout{
+    margin-left:0;
+    width:100%;
+    justify-content:center;
+  }
+}
+
+@media (max-width: 768px){
+  nav a.nav-brand{
+    font-size:1rem;
+  }
+
+  .nav-home-box{
+    width:2.8rem;
+    height:2.8rem;
+  }
+
+  .nav-home-box svg{
+    width:1.45rem;
+    height:1.45rem;
+  }
 }
 
 .logout-btn:hover {

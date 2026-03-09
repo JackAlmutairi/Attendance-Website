@@ -50,11 +50,6 @@ function requireSuperAdmin(req, res, next) {
 
   res.redirect('/login');
 }
-
-app.use((req, res, next) => {
-  res.locals.session = req.session;
-  next();
-});
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
@@ -244,7 +239,7 @@ app.post('/attendance', requireAdmin, async (req, res) => {
     const teacherName = req.body.currentTeacher ? req.body.currentTeacher.trim() : "";
     const submissionTime = new Date();
 
-    let teacherID = null;
+    let teacherID = req.body.currentTeacherID || null;
 
     // Find or create teacher
     if (teacherName !== "") {
