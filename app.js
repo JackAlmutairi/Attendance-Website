@@ -23,6 +23,16 @@ app.use(session({
     secure: false
   }
 }));
+app.use((req, res, next) => {
+  const kuwaitTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuwait" });
+  const hour = new Date(kuwaitTime).getHours();
+
+  if (hour >= 13 && req.session?.role !== "superadmin") {
+    return res.status(403).render("closed");
+  }
+
+  next();
+});
 
 function requireLogin(req, res, next) {
   if (req.session && req.session.loggedIn) {
