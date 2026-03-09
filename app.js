@@ -27,20 +27,19 @@ app.use((req, res, next) => {
   const kuwaitTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuwait" });
   const hour = new Date(kuwaitTime).getHours();
 
-  if (hour >= 13 && req.session?.role !== "superadmin") {
-    return res.status(403).render("closed");
+  const allowedPaths = ['/login', '/logout'];
+
+  if (allowedPaths.includes(req.path)) {
+    return next();
+  }
+
+  if (hour >= 13 && req.session?.role !== 'superadmin') {
+    return res.status(403).render('closed');
   }
 
   next();
 });
 
-function requireLogin(req, res, next) {
-  if (req.session && req.session.loggedIn) {
-    return next();
-  }
-
-  res.redirect('/login');
-}
 function requireAdmin(req, res, next) {
   if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin')) {
     return next();

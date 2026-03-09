@@ -74,8 +74,7 @@ INSERT INTO Classes (className, currentTeacherID) VALUES
 ('9-1', NULL),
 ('9-2', NULL),
 ('9-3', NULL),
-('9-4', NULL),
-('9-5', NULL);
+('9-4', NULL);
 
 CREATE TABLE temp_students (
     studentName VARCHAR(255),
