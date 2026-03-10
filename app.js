@@ -209,47 +209,51 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
 
     if (selectedDate) {
       gradeQuery = `
-        SELECT
-          gradeLevel,
-          totalStudents,
-          totalPresent,
-          totalAbsent,
-          lastAttendanceDate,
-          totalSectors,
-          submittedSectors,
-          CASE
-            WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
-            ELSE 0
-          END AS allSubmitted
-        FROM (
-          SELECT
-            SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
-            COUNT(DISTINCT s.studentID) AS totalStudents,
-            SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
-            SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
-            MAX(a.attendenceDate) AS lastAttendanceDate,
-            COUNT(DISTINCT c.classID) AS totalSectors,
-            COUNT(DISTINCT CASE
-              WHEN DATE(latest.latestSubmission) = ? THEN c.classID
-              ELSE NULL
-            END) AS submittedSectors
-          FROM Classes c
-          LEFT JOIN Students s
-            ON s.classID = c.classID
-          LEFT JOIN Attendence a
-            ON a.studentID = s.studentID
-            AND DATE(a.attendenceDate) = ?
-          LEFT JOIN (
-            SELECT classID, MAX(attendenceDate) AS latestSubmission
-            FROM Attendence
-            GROUP BY classID
-          ) latest
-            ON latest.classID = c.classID
-          GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
-        ) AS groupedGrades
-        ORDER BY CAST(gradeLevel AS UNSIGNED)
-      `;
-      gradeParams = [selectedDate, selectedDate];
+  SELECT
+    gradeLevel,
+    totalStudents,
+    totalPresent,
+    totalAbsent,
+    lastAttendanceDate,
+    totalSectors,
+    submittedSectors,
+    CASE
+      WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
+      ELSE 0
+    END AS allSubmitted
+  FROM (
+    SELECT
+      SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+      COUNT(DISTINCT s.studentID) AS totalStudents,
+      COUNT(CASE WHEN a.status = 'Present' THEN 1 END) AS totalPresent,
+      COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) AS totalAbsent,
+      MAX(latest.latestSubmission) AS lastAttendanceDate,
+      COUNT(DISTINCT c.classID) AS totalSectors,
+      COUNT(DISTINCT CASE
+        WHEN latest.latestSubmission IS NOT NULL THEN c.classID
+        ELSE NULL
+      END) AS submittedSectors
+    FROM Classes c
+    LEFT JOIN Students s
+      ON s.classID = c.classID
+    LEFT JOIN (
+      SELECT
+        classID,
+        MAX(attendenceDate) AS latestSubmission
+      FROM Attendence
+      WHERE DATE(attendenceDate) = ?
+      GROUP BY classID
+    ) latest
+      ON latest.classID = c.classID
+    LEFT JOIN Attendence a
+      ON a.classID = c.classID
+      AND a.studentID = s.studentID
+      AND a.attendenceDate = latest.latestSubmission
+    GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
+  ) AS groupedGrades
+  ORDER BY CAST(gradeLevel AS UNSIGNED)
+`;
+gradeParams = [selectedDate];
     } else {
       gradeQuery = `
         SELECT
@@ -305,44 +309,48 @@ if (selectedDate) {
   overallQuery = `
   SELECT
     COUNT(DISTINCT s.studentID) AS totalStudents,
-
-    COUNT(DISTINCT CASE
-      WHEN a.status = 'Present' AND DATE(a.attendenceDate) = ?
-      THEN a.studentID
-      ELSE NULL
-    END) AS totalPresent,
-
-    COUNT(DISTINCT CASE
-      WHEN a.status = 'Absent' AND DATE(a.attendenceDate) = ?
-      THEN a.studentID
-      ELSE NULL
-    END) AS totalAbsent
-
-  FROM Students s
+    COUNT(CASE WHEN a.status = 'Present' THEN 1 END) AS totalPresent,
+    COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) AS totalAbsent
+  FROM Classes c
+  LEFT JOIN Students s
+    ON s.classID = c.classID
+  LEFT JOIN (
+    SELECT
+      classID,
+      MAX(attendenceDate) AS latestSubmission
+    FROM Attendence
+    WHERE DATE(attendenceDate) = ?
+    GROUP BY classID
+  ) latest
+    ON latest.classID = c.classID
   LEFT JOIN Attendence a
-    ON a.studentID = s.studentID
+    ON a.classID = c.classID
+    AND a.studentID = s.studentID
+    AND a.attendenceDate = latest.latestSubmission
 `;
-overallParams = [selectedDate, selectedDate];
+overallParams = [selectedDate];
 } else {
   overallQuery = `
   SELECT
     COUNT(DISTINCT s.studentID) AS totalStudents,
-
-    COUNT(DISTINCT CASE
-      WHEN a.status = 'Present' AND DATE(a.attendenceDate) = CURDATE()
-      THEN a.studentID
-      ELSE NULL
-    END) AS totalPresent,
-
-    COUNT(DISTINCT CASE
-      WHEN a.status = 'Absent' AND DATE(a.attendenceDate) = CURDATE()
-      THEN a.studentID
-      ELSE NULL
-    END) AS totalAbsent
-
-  FROM Students s
+    COUNT(CASE WHEN a.status = 'Present' THEN 1 END) AS totalPresent,
+    COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) AS totalAbsent
+  FROM Classes c
+  LEFT JOIN Students s
+    ON s.classID = c.classID
+  LEFT JOIN (
+    SELECT
+      classID,
+      MAX(attendenceDate) AS latestSubmission
+    FROM Attendence
+    WHERE DATE(attendenceDate) = CURDATE()
+    GROUP BY classID
+  ) latest
+    ON latest.classID = c.classID
   LEFT JOIN Attendence a
-    ON a.studentID = s.studentID
+    ON a.classID = c.classID
+    AND a.studentID = s.studentID
+    AND a.attendenceDate = latest.latestSubmission
 `;
 }
   const [overallRows] = await db.query(overallQuery, overallParams);
