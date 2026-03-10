@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/css/pages.css">
 <style>
 body {
   margin: 0;
@@ -22,17 +23,44 @@ input {
   padding: 8px;
   box-sizing: border-box;
 }
+.logo-top {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.logo-top img {
+  height: 90px;
+}
+button {
+  width: 100%;
+  background-color: #306C86;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #285a70;
+}
 </style>
 
 <!DOCTYPE html>
 <html lang="ar-KW">
 <head>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>تسجيل الدخول</title>
 </head>
 <body>
   <div class="login-container">
+
+    <div class="logo-top">
+      <img src="/images/logo.png" alt="School Logo">
+    </div>
     <h1>تسجيل الدخول</h1>
 
     <% if (error) { %>
