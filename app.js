@@ -103,7 +103,7 @@ app.get('/', requireAdmin, async function (req, res) {
 
 app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
   try {
-    const query = `
+    const classQuery = `
       SELECT
         c.classID,
         c.className,
@@ -142,16 +142,26 @@ app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
           SELECT MAX(a.attendenceDate)
           FROM Attendence a
           WHERE a.classID = c.classID
-        ) AS lastAttendanceDate
+        ) AS lastAttendanceDate,
+
+        CASE
+          WHEN DATE((
+            SELECT MAX(a.attendenceDate)
+            FROM Attendence a
+            WHERE a.classID = c.classID
+          )) = CURDATE()
+          THEN 1
+          ELSE 0
+        END AS submittedToday
 
       FROM Classes c
       ORDER BY c.className ASC
     `;
 
-    const [cards] = await db.query(query);
+    const [cards] = await db.query(classQuery);
 
     res.render('superadmin-dashboard', {
-      cards: cards
+      cards
     });
   } catch (error) {
     console.error(error);
@@ -194,9 +204,169 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
       records = rows;
     }
 
+    let gradeQuery = '';
+    let gradeParams = [];
+
+    if (selectedDate) {
+      gradeQuery = `
+        SELECT
+          gradeLevel,
+          totalStudents,
+          totalPresent,
+          totalAbsent,
+          lastAttendanceDate,
+          totalSectors,
+          submittedSectors,
+          CASE
+            WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
+            ELSE 0
+          END AS allSubmitted
+        FROM (
+          SELECT
+            SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+            COUNT(DISTINCT s.studentID) AS totalStudents,
+            SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
+            SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
+            MAX(a.attendenceDate) AS lastAttendanceDate,
+            COUNT(DISTINCT c.classID) AS totalSectors,
+            COUNT(DISTINCT CASE
+              WHEN DATE(latest.latestSubmission) = ? THEN c.classID
+              ELSE NULL
+            END) AS submittedSectors
+          FROM Classes c
+          LEFT JOIN Students s
+            ON s.classID = c.classID
+          LEFT JOIN Attendence a
+            ON a.studentID = s.studentID
+            AND DATE(a.attendenceDate) = ?
+          LEFT JOIN (
+            SELECT classID, MAX(attendenceDate) AS latestSubmission
+            FROM Attendence
+            GROUP BY classID
+          ) latest
+            ON latest.classID = c.classID
+          GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
+        ) AS groupedGrades
+        ORDER BY CAST(gradeLevel AS UNSIGNED)
+      `;
+      gradeParams = [selectedDate, selectedDate];
+    } else {
+      gradeQuery = `
+        SELECT
+          gradeLevel,
+          totalStudents,
+          totalPresent,
+          totalAbsent,
+          lastAttendanceDate,
+          totalSectors,
+          submittedSectors,
+          CASE
+            WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
+            ELSE 0
+          END AS allSubmitted
+        FROM (
+          SELECT
+            SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+            COUNT(DISTINCT s.studentID) AS totalStudents,
+            SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
+            SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
+            MAX(a.attendenceDate) AS lastAttendanceDate,
+            COUNT(DISTINCT c.classID) AS totalSectors,
+            COUNT(DISTINCT CASE
+              WHEN DATE(latest.latestSubmission) = CURDATE() THEN c.classID
+              ELSE NULL
+            END) AS submittedSectors
+          FROM Classes c
+          LEFT JOIN Students s
+            ON s.classID = c.classID
+          LEFT JOIN Attendence a
+            ON a.studentID = s.studentID
+            AND a.attendenceDate = (
+              SELECT MAX(a2.attendenceDate)
+              FROM Attendence a2
+              WHERE a2.classID = c.classID
+            )
+          LEFT JOIN (
+            SELECT classID, MAX(attendenceDate) AS latestSubmission
+            FROM Attendence
+            GROUP BY classID
+          ) latest
+            ON latest.classID = c.classID
+          GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
+        ) AS groupedGrades
+        ORDER BY CAST(gradeLevel AS UNSIGNED)
+      `;
+    }
+
+let overallQuery = '';
+let overallParams = [];
+
+if (selectedDate) {
+  overallQuery = `
+  SELECT
+    COUNT(DISTINCT s.studentID) AS totalStudents,
+
+    COUNT(DISTINCT CASE
+      WHEN a.status = 'Present' AND DATE(a.attendenceDate) = ?
+      THEN a.studentID
+      ELSE NULL
+    END) AS totalPresent,
+
+    COUNT(DISTINCT CASE
+      WHEN a.status = 'Absent' AND DATE(a.attendenceDate) = ?
+      THEN a.studentID
+      ELSE NULL
+    END) AS totalAbsent
+
+  FROM Students s
+  LEFT JOIN Attendence a
+    ON a.studentID = s.studentID
+`;
+overallParams = [selectedDate, selectedDate];
+} else {
+  overallQuery = `
+  SELECT
+    COUNT(DISTINCT s.studentID) AS totalStudents,
+
+    COUNT(DISTINCT CASE
+      WHEN a.status = 'Present' AND DATE(a.attendenceDate) = CURDATE()
+      THEN a.studentID
+      ELSE NULL
+    END) AS totalPresent,
+
+    COUNT(DISTINCT CASE
+      WHEN a.status = 'Absent' AND DATE(a.attendenceDate) = CURDATE()
+      THEN a.studentID
+      ELSE NULL
+    END) AS totalAbsent
+
+  FROM Students s
+  LEFT JOIN Attendence a
+    ON a.studentID = s.studentID
+`;
+}
+  const [overallRows] = await db.query(overallQuery, overallParams);
+
+  const overall = overallRows[0] || {
+  totalStudents: 0,
+  totalPresent: 0,
+  totalAbsent: 0
+};
+
+  const overallPresentPercentage =
+  overall.totalStudents > 0
+    ? ((overall.totalPresent * 100) / overall.totalStudents).toFixed(1)
+    : 0;
+
+    const [gradeCards] = await db.query(gradeQuery, gradeParams);
+
+
     res.render('superadmin-attendance-records', {
       records,
-      selectedDate
+      gradeCards,
+      selectedDate,
+      overall,
+      overallPresentPercentage
     });
   } catch (error) {
     console.error(error);

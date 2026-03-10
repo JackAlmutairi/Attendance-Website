@@ -19,39 +19,44 @@
   }
 
   .filter-form {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-  padding: 0.85rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  max-width: 520px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.filter-form input[type="date"] {
-  padding: 0.65rem 0.8rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  font: inherit;
-  margin: 0;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-  .records-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    padding: 0.85rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
+    max-width: 520px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .filter-form input[type="date"] {
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font: inherit;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .records-card,
+  .grade-summary-card,
+  .overall-attendance-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .records-card {
     overflow: hidden;
   }
 
@@ -80,6 +85,156 @@
     overflow-x: auto;
   }
 
+  .grade-summary-section {
+    margin-bottom: 2rem;
+  }
+
+  .grade-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .grade-summary-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .grade-name {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .mini-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .mini-stat {
+    background: rgba(48, 108, 134, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem;
+    text-align: center;
+  }
+
+  .mini-label {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+  }
+
+  .mini-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .grade-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .status-badge.submitted {
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .status-badge.missing {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  .overall-attendance-card {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+
+  .overall-attendance-label {
+    font-size: 1.1rem;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .overall-attendance-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .overall-attendance-subtext {
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .overall-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.overall-stat {
+  text-align: center;
+}
+
+.overall-stat-label {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.overall-stat-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+  .empty-state {
+    padding: 1rem;
+    color: var(--text-muted);
+  }
+
+ .attendance-blocks {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 3px;
+  margin: 0.7rem 0;
+}
+
+.attendance-block {
+  height: 10px;
+  background: rgba(48,108,134,0.15);
+}
+
+.attendance-block.filled {
+  background: #22c55e;
+}
+
   @media (max-width: 768px) {
     .page-wrap {
       margin-top: 1rem;
@@ -94,19 +249,17 @@
     }
 
     .filter-form {
-    padding: 0.75rem;
-    gap: 0.6rem;
-    max-width: 100%;
-  }
+      padding: 0.75rem;
+      gap: 0.6rem;
+      max-width: 100%;
+    }
 
     .filter-form input[type="date"],
     .filter-form .btn {
-    width: 100%;
-    min-height: 44px;
-    box-sizing: border-box;
-  }
-}
-
+      width: 100%;
+      min-height: 44px;
+      box-sizing: border-box;
+    }
 
     .records-table th,
     .records-table td {
@@ -121,10 +274,9 @@
 
   @media (max-width: 480px) {
     .filter-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
+      flex-direction: column;
+      align-items: stretch;
+    }
 
     .page-title {
       font-size: 1.1rem;
@@ -135,56 +287,167 @@
       padding: 0.65rem 0.7rem;
       font-size: 0.88rem;
     }
+
+    .mini-cards {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
 <div class="page-wrap">
-  <h1 class="page-title">سجلات الحضور</h1>
-  <p class="page-subtitle">اختر تاريخًا لعرض جميع سجلات الحضور من ذلك اليوم فقط</p>
 
-  <form method="GET" action="/superadmin/attendance-records" class="filter-form">
-    <label for="date" >اختر التاريخ</label>
-    <input type="date" name="selectedDate" value="<%= selectedDate || '' %>">
-    <button type="submit" class="btn primary">إظهار السجلات</button>
-    <a href="/superadmin/attendance-records" class="btn">امسح</a>
-  </form>
+  <section class="grade-summary-section">
+    <div class="overall-attendance-card">
 
-  <div class="records-card">
-    <% if (records && records.length) { %>
-      <div class="table-wrap">
-        <table class="records-table">
-          <thead>
-            <tr>
-              <th>التاريخ</th>
-              <th>الفصل</th>
-              <th>إجمالي الطالبات</th>
-              <th>الغياب</th>
-              <th>الحضور</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% records.forEach(r => { %>
-              <tr>
-                <td>
-                  <%= new Date(r.attendanceDate).toLocaleDateString('ar-KW', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  }) %>
-                </td>
-                <td><%= r.className %></td>
-                <td><%= r.totalStudents %></td>
-                <td><%= r.totalAbsent %></td>
-                <td><%= r.totalPresent %></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-    <% } else { %>
-      <div class="empty-state">
-        لم يتم العثور على سجلات حضور لهذا التاريخ
-      </div>
-    <% } %>
+  <div class="overall-attendance-label">
+    نسبة الحضور
+    <%= selectedDate
+      ? new Date(selectedDate).toLocaleDateString('ar-KW')
+      : 'اليوم' %>
   </div>
+
+  <div class="overall-attendance-value">
+    <%= overallPresentPercentage %>%
+  </div>
+
+  <div class="attendance-blocks">
+
+  <% const blocks = Math.round(overallPresentPercentage / 5); %>
+
+  <% for (let i = 0; i < 20; i++) { %>
+    <div class="attendance-block <%= i < blocks ? 'filled' : '' %>"></div>
+  <% } %>
+
+</div>
+
+  <div class="overall-stats">
+
+  <div class="overall-stat">
+    <div class="overall-stat-label">إجمالي الحضور</div>
+    <div class="overall-stat-value">
+      <%= overall.totalPresent %>
+    </div>
+  </div>
+
+  <div class="overall-stat">
+    <div class="overall-stat-label">إجمالي الغياب</div>
+    <div class="overall-stat-value">
+      <%= overall.totalAbsent %>
+    </div>
+  </div>
+
+  <div class="overall-stat">
+    <div class="overall-stat-label">عدد الطالبات</div>
+    <div class="overall-stat-value">
+      <%= overall.totalPresent %> / <%= overall.totalStudents %>
+    </div>
+  </div>
+
+</div>
+
+</div>
+    </div>
+
+    <h2 class="page-title">ملخص الصفوف</h2>
+    <p class="page-subtitle">إجمالي الحضور والغياب حسب الصف</p>
+
+    <form method="GET" action="/superadmin/attendance-records" class="filter-form">
+      <label for="selectedDate">اختر التاريخ</label>
+      <input type="date" name="selectedDate" value="<%= selectedDate || '' %>">
+      <button type="submit" class="btn primary">إظهار</button>
+      <a href="/superadmin/attendance-records" class="btn">امسح</a>
+    </form>
+
+    <div class="grade-summary-grid">
+      <% if (gradeCards && gradeCards.length > 0) { %>
+        <% gradeCards.forEach(card => { %>
+          <div class="grade-summary-card">
+            <div class="grade-card-header">
+              <h3 class="grade-name">الصف <%= card.gradeLevel %></h3>
+
+              <% if (card.allSubmitted) { %>
+                <span class="status-badge submitted">مكتمل ✓</span>
+              <% } else { %>
+                <span class="status-badge missing">
+                  غير مكتمل  (<%= card.submittedSectors %>/<%= card.totalSectors %>)
+                </span>
+              <% } %>
+            </div>
+
+            <div class="mini-cards">
+              <div class="mini-stat">
+                <span class="mini-label">الحضور</span>
+                <span class="mini-value"><%= card.totalPresent %></span>
+              </div>
+
+              <div class="mini-stat">
+                <span class="mini-label">الغياب</span>
+                <span class="mini-value"><%= card.totalAbsent %></span>
+              </div>
+
+              <div class="mini-stat">
+                <span class="mini-label">الإجمالي</span>
+                <span class="mini-value"><%= card.totalStudents %></span>
+              </div>
+
+              <div class="mini-stat">
+                <span class="mini-label">آخر تسجيل</span>
+                <span class="mini-value">
+                  <%= card.lastAttendanceDate
+                    ? new Date(card.lastAttendanceDate).toLocaleDateString('ar-KW')
+                    : '—' %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>لا توجد بيانات.</p>
+      <% } %>
+    </div>
+  </section>
+
+  <section class="records-section">
+    <h1 class="page-title">سجلات الحضور</h1>
+
+    <div class="records-card">
+      <% if (records && records.length) { %>
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الفصل</th>
+                <th>إجمالي الطالبات</th>
+                <th>الغياب</th>
+                <th>الحضور</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% records.forEach(r => { %>
+                <tr>
+                  <td>
+                    <%= new Date(r.attendanceDate).toLocaleDateString('ar-KW', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    }) %>
+                  </td>
+                  <td><%= r.className %></td>
+                  <td><%= r.totalStudents %></td>
+                  <td><%= r.totalAbsent %></td>
+                  <td><%= r.totalPresent %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          لم يتم العثور على سجلات حضور لهذا التاريخ
+        </div>
+      <% } %>
+    </div>
+  </section>
+
 </div>

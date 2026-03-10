@@ -142,21 +142,149 @@
       grid-template-columns: 1fr;
     }
   }
+  .grade-summary-section {
+  margin-top: 2rem;
+}
+
+
+.grade-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.grade-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.grade-name {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 1000;
+  color: var(--text);
+}
+
+.mini-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.mini-stat {
+  background: rgba(48, 108, 134, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.mini-label {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+  font-weight: 900;
+}
+
+.mini-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.dashboard-card-top,
+.grade-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge.submitted {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  margin-bottom: 10px;
+}
+
+.status-badge.missing {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  margin-bottom: 10px;
+}
+
+.overall-attendance-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.overall-attendance-label {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-weight: 500px;
+  margin-bottom: 0.4rem;
+}
+
+.overall-attendance-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.overall-attendance-subtext {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .mini-cards {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 
 <main class="dashboard-page">
+
   <section class="dashboard-header">
     <h1>لوحة الحضور</h1>
     <p>نظرة عامة على الحضور حسب الصف</p>
   </section>
 
+  <!-- FIRST DASHBOARD (CLASSES) -->
   <section class="dashboard-grid">
     <% if (cards && cards.length > 0) { %>
       <% cards.forEach(card => { %>
         <div class="dashboard-card">
           <div class="dashboard-card-top">
-            <h2><%= card.className %></h2>
-          </div>
+          <h2><%= card.className %></h2>
+
+          <% if (card.submittedToday) { %>
+        <span class="status-badge submitted">تم اليوم ✓</span>
+        <% } else { %>
+          <span class="status-badge missing">لم يتم اليوم ✕</span>
+        <% } %>
+        </div>
 
           <div class="dashboard-stats">
             <div class="stat-box">
@@ -195,4 +323,5 @@
       <p>لم يتم العثور على أي صفوف.</p>
     <% } %>
   </section>
+
 </main>

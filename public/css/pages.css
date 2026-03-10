@@ -15,6 +15,7 @@
     transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.05s ease;
     box-sizing: border-box;
     white-space: nowrap;
+    margin-bottom: 3px;
   }
 
  .btn:hover {
