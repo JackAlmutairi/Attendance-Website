@@ -75,10 +75,10 @@
   .records-table th {
     background: rgba(48, 108, 134, 0.06);
     color: var(--text-muted);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-size: 1.2rem;
+    text-align: left;
   }
+
 
   .table-wrap {
     width: 100%;
@@ -234,6 +234,11 @@
 .attendance-block.filled {
   background: #22c55e;
 }
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
 
   @media (max-width: 768px) {
     .page-wrap {
@@ -353,10 +358,11 @@
 
     <form method="GET" action="/superadmin/attendance-records" class="filter-form">
       <label for="selectedDate">اختر التاريخ</label>
-      <input type="date" name="selectedDate" value="<%= selectedDate || new Date().toISOString().split('T')[0] %>">
+      <input type="date" name="selectedDate" value="<%= selectedDate || kuwaitDate %>">
       <button type="submit" class="btn primary">إظهار</button>
       <a href="/superadmin/attendance-records" class="btn">امسح</a>
-      <a href="/superadmin/export-attendance?selectedDate=<%= selectedDate || '' %>" class="btn">إنشاء تقرير</a>
+      <a 
+href="/superadmin/export-attendance?selectedDate=<%= selectedDate %>" class="btn primary <%= records.length === 0 ? 'disabled' : '' %>"<%= records.length === 0 ? 'onclick="return false;"' : '' %>>إنشاء تقرير</a>
     </form>
 
     <div class="grade-summary-grid">

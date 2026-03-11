@@ -105,11 +105,38 @@ app.get('/', requireAdmin, async function (req, res) {
     if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
     return res.render('attendance-closed');
   }
+const kuwaitDate = new Date().toLocaleDateString('en-CA', {
+  timeZone: 'Asia/Kuwait'
+});
 
+const query = `
+SELECT 
+  c.classID,
+  c.className,
 
-    const query ='SELECT classID, className, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID';
+  CASE
+    WHEN DATE(a.latestSubmission) = ? THEN t.teacherName
+    ELSE NULL
+  END AS teacherName
 
-    const [classes] = await db.query(query);
+FROM Classes c
+
+LEFT JOIN Teachers t
+  ON c.currentTeacherID = t.teacherID
+
+LEFT JOIN (
+  SELECT 
+    classID,
+    MAX(attendenceDate) AS latestSubmission
+  FROM Attendence
+  GROUP BY classID
+) a
+  ON a.classID = c.classID
+
+ORDER BY c.className
+`;
+
+    const [classes] = await db.query(query, [kuwaitDate]);
 
     res.render('classes', {
         classes: classes
@@ -391,7 +418,8 @@ gradeParams = [effectiveDate];
       gradeCards,
       selectedDate,
       overall,
-      overallPresentPercentage
+      overallPresentPercentage,
+      kuwaitDate
     });
   } catch (error) {
     console.error(error);
@@ -400,7 +428,6 @@ gradeParams = [effectiveDate];
 });
 
 app.get('/attendance', requireAdmin, async function (req, res) {
-
   if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
     return res.render('attendance-closed');
   }
@@ -408,9 +435,36 @@ app.get('/attendance', requireAdmin, async function (req, res) {
   const classID = req.query.classID;
 
   try {
-    const classQuery = 'SELECT classID, className, currentTeacherID, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID WHERE classID=?';
-    const studentQuery = 'SELECT studentID, studentName, status FROM Students WHERE classID=? ORDER BY studentName ASC;';
-    const getDate = 'SELECT attendenceDate FROM Attendence WHERE classID=? ORDER BY attendenceDate DESC LIMIT 1';
+    const kuwaitDate = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Kuwait'
+    });
+
+    const classQuery = `
+      SELECT 
+        classID, 
+        className, 
+        currentTeacherID, 
+        teacherName 
+      FROM Classes 
+      LEFT JOIN Teachers 
+        ON Classes.currentTeacherID = Teachers.teacherID 
+      WHERE classID = ?
+    `;
+
+    const studentQuery = `
+      SELECT studentID, studentName, status
+      FROM Students
+      WHERE classID = ?
+      ORDER BY studentName ASC
+    `;
+
+    const getDate = `
+      SELECT attendenceDate
+      FROM Attendence
+      WHERE classID = ?
+      ORDER BY attendenceDate DESC
+      LIMIT 1
+    `;
 
     const [classRows] = await db.query(classQuery, [classID]);
 
@@ -423,13 +477,35 @@ app.get('/attendance', requireAdmin, async function (req, res) {
 
     const classRow = classRows[0];
 
+    let teacherName = classRow.teacherName || '';
+    let currentTeacherID = classRow.currentTeacherID || '';
+    let date = lastUpdate.length ? lastUpdate[0].attendenceDate : null;
+
+    if (date) {
+      const lastAttendanceDate = new Date(date).toLocaleDateString('en-CA', {
+        timeZone: 'Asia/Kuwait'
+      });
+
+      if (lastAttendanceDate !== kuwaitDate) {
+        teacherName = '';
+        currentTeacherID = '';
+        date = null;
+      }
+    } else {
+      teacherName = '';
+      currentTeacherID = '';
+    }
+
     res.render('attendance', {
-      teacherName: classRow.teacherName,
-      students: students,
-      classID: classID,
-      classRow: classRow,
+      teacherName,
+      students,
+      classID,
+      classRow: {
+        ...classRow,
+        currentTeacherID
+      },
       className: classRow.className,
-      date: lastUpdate.length ? lastUpdate[0].attendenceDate : null
+      date
     });
 
   } catch (error) {
@@ -566,6 +642,9 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
   ORDER BY CAST(groupedTotals.gradeLevel AS UNSIGNED)
 `;
 
+    if (details.length === 0) {
+    return res.status(400).send('No attendance records for this date.');
+    }
     const [details] = await db.query(detailsQuery, [selectedDate]);
     const [totalsByGrade] = await db.query(totalsByGradeQuery, [selectedDate]);
 
@@ -597,8 +676,8 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
         const totals = totalsMap[gradeLevel] || { totalPresent: 0, totalAbsent: 0 };
 
         const cell = worksheet.getCell('A1');
-        cell.value = new Date(selectedDate);
-        cell.numFmt = '[$-ar-KW]dddd، d mmmm yyyy';  // Arabic (Kuwait) date format
+        cell.value = new Date(`${selectedDate}T12:00:00`);
+        cell.numFmt = '[$-ar-KW]dddd، d mmmm yyyy'; 
         cell.font = { bold: true, size: 14 };
         worksheet.getCell('A2').value = `الصف: ${gradeLevel}`;
         worksheet.getCell('A3').value = `إجمالي الحضور: ${totals.totalPresent}`;
@@ -621,7 +700,7 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
             currentRow++;
 
             worksheet.getCell(`A${currentRow}`).value = 'الطالبات';
-            worksheet.getCell(`B${currentRow}`).value = 'حالة';
+            worksheet.getCell(`B${currentRow}`).value = 'الحالة';
             worksheet.getRow(currentRow).font = { bold: true };
             currentRow++;
           }
@@ -633,9 +712,9 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
         });
 
         worksheet.columns = [
-          { key: 'الطالباتt', width: 30 },
-          { key: 'حالة', width: 18 }
-        ];
+        { width: 30 },
+        { width: 18 }
+      ];
       });
 
     res.setHeader(
