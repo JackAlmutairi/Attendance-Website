@@ -642,11 +642,12 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
   ORDER BY CAST(groupedTotals.gradeLevel AS UNSIGNED)
 `;
 
+    const [details] = await db.query(detailsQuery, [selectedDate]);
+    const [totalsByGrade] = await db.query(totalsByGradeQuery, [selectedDate]);
+    
     if (details.length === 0) {
     return res.status(400).send('No attendance records for this date.');
     }
-    const [details] = await db.query(detailsQuery, [selectedDate]);
-    const [totalsByGrade] = await db.query(totalsByGradeQuery, [selectedDate]);
 
     const workbook = new ExcelJS.Workbook();
 
