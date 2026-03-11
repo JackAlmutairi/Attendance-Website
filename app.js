@@ -596,7 +596,10 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
         const rows = groupedByGrade[gradeLevel];
         const totals = totalsMap[gradeLevel] || { totalPresent: 0, totalAbsent: 0 };
 
-        worksheet.getCell('A1').value = `تاريخ: ${selectedDate}`;
+        const cell = worksheet.getCell('A1');
+        cell.value = new Date(selectedDate);
+        cell.numFmt = '[$-ar-KW]dddd، d mmmm yyyy';  // Arabic (Kuwait) date format
+        cell.font = { bold: true, size: 14 };
         worksheet.getCell('A2').value = `الصف: ${gradeLevel}`;
         worksheet.getCell('A3').value = `إجمالي الحضور: ${totals.totalPresent}`;
         worksheet.getCell('A4').value = `إجمالي الغياب: ${totals.totalAbsent}`;
