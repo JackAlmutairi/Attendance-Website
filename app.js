@@ -28,13 +28,6 @@ app.use((req, res, next) => {
   next();
 });
 
-function requireLogin(req, res, next) {
-  if (req.session && req.session.loggedIn) {
-    return next();
-  }
-
-  res.redirect('/login');
-}
 function requireAdmin(req, res, next) {
   if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin')) {
     return next();
@@ -140,13 +133,13 @@ app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
 
     CASE
       WHEN DATE(latest.latestSubmission) = ?
-      THEN SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END)
+      THEN COUNT(CASE WHEN a.status = 'Absent' THEN 1 END)
       ELSE NULL
     END AS totalAbsences,
 
     CASE
       WHEN DATE(latest.latestSubmission) = ?
-      THEN SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END)
+      THEN COUNT(CASE WHEN a.status = 'Present' THEN 1 END)
       ELSE NULL
     END AS totalAttendees,
 
@@ -170,6 +163,7 @@ app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
     ON latest.classID = c.classID
   LEFT JOIN Attendence a
     ON a.classID = c.classID
+    AND a.studentID = s.studentID
     AND a.attendenceDate = latest.latestSubmission
 
   GROUP BY c.classID, c.className, latest.latestSubmission
