@@ -353,7 +353,7 @@
 
     <form method="GET" action="/superadmin/attendance-records" class="filter-form">
       <label for="selectedDate">اختر التاريخ</label>
-      <input type="date" name="selectedDate" value="<%= selectedDate || '' %>">
+      <input type="date" name="selectedDate" value="<%= selectedDate || new Date().toISOString().split('T')[0] %>">
       <button type="submit" class="btn primary">إظهار</button>
       <a href="/superadmin/attendance-records" class="btn">امسح</a>
     </form>
