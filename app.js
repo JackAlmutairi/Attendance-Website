@@ -50,6 +50,21 @@ function requireSuperAdmin(req, res, next) {
 
   res.redirect('/login');
 }
+function isAttendanceOpen() {
+  const kuwaitNow = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kuwait" })
+  );
+
+  const hour = kuwaitNow.getHours();
+  const minute = kuwaitNow.getMinutes();
+  const totalMinutes = hour * 60 + minute;
+
+  const start = 8 * 60;   // 8:00 AM
+  const end = 11 * 60;    // 11:00 AM
+
+  return totalMinutes >= start && totalMinutes <= end;
+}
+
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
@@ -91,6 +106,10 @@ app.get('/logout', (req, res) => {
 
 
 app.get('/', requireAdmin, async function (req, res) {
+  if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
+    return res.render('attendance-closed');
+  }
+
 
     const query ='SELECT classID, className, teacherName FROM Classes LEFT JOIN Teachers ON Classes.currentTeacherID = Teachers.teacherID';
 
@@ -393,6 +412,11 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
 });
 
 app.get('/attendance', requireAdmin, async function (req, res) {
+
+  if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
+    return res.render('attendance-closed');
+  }
+
   const classID = req.query.classID;
 
   try {
@@ -419,6 +443,7 @@ app.get('/attendance', requireAdmin, async function (req, res) {
       className: classRow.className,
       date: lastUpdate.length ? lastUpdate[0].attendenceDate : null
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).send("Database Error");
@@ -428,13 +453,18 @@ app.get('/attendance', requireAdmin, async function (req, res) {
 
 app.post('/attendance', requireAdmin, async (req, res) => {
   try {
+    if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
+      return res.render('attendance-closed');
+    }
+
     const classID = req.body.classID;
     const teacherName = req.body.currentTeacher ? req.body.currentTeacher.trim() : "";
-    const submissionTime = new Date();
+    const submissionTime = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "Asia/Kuwait" })
+);
 
     let teacherID = req.body.currentTeacherID || null;
 
-    // Find or create teacher
     if (teacherName !== "") {
       const [teacherRows] = await db.query(
         "SELECT teacherID FROM Teachers WHERE teacherName = ?",
@@ -451,14 +481,12 @@ app.post('/attendance', requireAdmin, async (req, res) => {
         teacherID = insertTeacher.insertId;
       }
 
-      // Update class once
       await db.query(
         "UPDATE Classes SET currentTeacherID = ? WHERE classID = ?",
         [teacherID, classID]
       );
     }
 
-    // Update each student's current status and save attendance record
     for (const key in req.body) {
       if (
         key === "classID" ||
