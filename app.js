@@ -106,7 +106,8 @@ app.get('/logout', (req, res) => {
 
 
 app.get('/', requireAdmin, async function (req, res) {
-  if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
+  try {
+    if (req.session.role !== 'superadmin' && !isAttendanceOpen()) {
     return res.render('attendance-closed');
   }
 
@@ -118,6 +119,10 @@ app.get('/', requireAdmin, async function (req, res) {
     res.render('classes', {
         classes: classes
     });
+  } catch(error) {
+    console.error(error);
+    res.status(500).send("Database Error");
+  }
 });
 
 app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
@@ -200,37 +205,33 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
     });
     const effectiveDate = selectedDate || kuwaitDate;
 
-    let records = [];
+    const recordsQuery = `
+      SELECT
+        DATE(a.attendenceDate) AS attendanceDate,
+        c.className,
+        COUNT(*) AS totalStudents,
+        SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
+        SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent
+      FROM Attendence a
+      JOIN Classes c ON a.classID = c.classID
+      JOIN (
+        SELECT
+          classID,
+          DATE(attendenceDate) AS attendanceDay,
+          MAX(attendenceDate) AS latestSubmission
+        FROM Attendence
+        WHERE DATE(attendenceDate) = ?
+        GROUP BY classID, DATE(attendenceDate)
+      ) latest
+        ON a.classID = latest.classID
+        AND DATE(a.attendenceDate) = latest.attendanceDay
+        AND a.attendenceDate = latest.latestSubmission
+      GROUP BY DATE(a.attendenceDate), c.className
+      ORDER BY c.className ASC
+    `;
 
-    if (selectedDate) {
-  const recordsQuery = `
-  SELECT
-    DATE(a.attendenceDate) AS attendanceDate,
-    c.className,
-    COUNT(*) AS totalStudents,
-    SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
-    SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent
-  FROM Attendence a
-  JOIN Classes c ON a.classID = c.classID
-  JOIN (
-    SELECT
-      classID,
-      DATE(attendenceDate) AS attendanceDay,
-      MAX(attendenceDate) AS latestSubmission
-    FROM Attendence
-    WHERE DATE(attendenceDate) = ?
-    GROUP BY classID, DATE(attendenceDate)
-  ) latest
-    ON a.classID = latest.classID
-    AND DATE(a.attendenceDate) = latest.attendanceDay
-    AND a.attendenceDate = latest.latestSubmission
-  GROUP BY DATE(a.attendenceDate), c.className
-  ORDER BY c.className ASC
-`;
-
-
-  const [records] = await db.query(recordsQuery, [effectiveDate]);
-}
+    const [rows] = await db.query(recordsQuery, [effectiveDate]);
+    const records = rows;
 
     let gradeQuery = '';
     let gradeParams = [];
