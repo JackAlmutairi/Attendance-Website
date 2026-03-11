@@ -294,27 +294,26 @@
 
             <div class="stat-box">
               <span class="stat-label">الغياب</span>
-              <span class="stat-value"><%= card.totalAbsences || 0 %></span>
+              <span class="stat-value"><%= card.submittedToday ? card.totalAbsences : '--' %></span>
             </div>
 
             <div class="stat-box">
               <span class="stat-label">الحضور</span>
-              <span class="stat-value"><%= card.totalAttendees || 0 %></span>
+              <span class="stat-value"><%= card.submittedToday ? card.totalAttendees : '--' %></span>
             </div>
 
             <div class="stat-box wide">
               <span class="stat-label">آخر تسجيل</span>
               <span class="stat-value date-value">
-                <%= card.lastAttendanceDate
+                  <%= card.submittedToday && card.lastAttendanceDate
                   ? new Date(card.lastAttendanceDate).toLocaleString('ar-KW', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
                     })
-                  : 'لا يوجد تسجيل حضور بعد' %>
-              </span>
+                  : '--' %></span>
             </div>
           </div>
         </div>

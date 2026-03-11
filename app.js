@@ -119,7 +119,7 @@ app.get('/', requireAdmin, async function (req, res) {
     res.render('classes', {
         classes: classes
     });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).send("Database Error");
   }
@@ -132,68 +132,58 @@ app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
     });
 
     const classQuery = `
-      SELECT
-        c.classID,
-        c.className,
+  SELECT
+    c.classID,
+    c.className,
 
-        (
-          SELECT COUNT(*)
-          FROM Students s
-          WHERE s.classID = c.classID
-        ) AS totalStudents,
+    COUNT(DISTINCT s.studentID) AS totalStudents,
 
-        (
-          SELECT COUNT(*)
-          FROM Attendence a
-          WHERE a.classID = c.classID
-            AND a.attendenceDate = (
-              SELECT MAX(a2.attendenceDate)
-              FROM Attendence a2
-              WHERE a2.classID = c.classID
-            )
-            AND a.status = 'Absent'
-        ) AS totalAbsences,
+    CASE
+      WHEN DATE(latest.latestSubmission) = ?
+      THEN SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END)
+      ELSE NULL
+    END AS totalAbsences,
 
-        (
-          SELECT COUNT(*)
-          FROM Attendence a
-          WHERE a.classID = c.classID
-            AND a.attendenceDate = (
-              SELECT MAX(a2.attendenceDate)
-              FROM Attendence a2
-              WHERE a2.classID = c.classID
-            )
-            AND a.status = 'Present'
-        ) AS totalAttendees,
+    CASE
+      WHEN DATE(latest.latestSubmission) = ?
+      THEN SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END)
+      ELSE NULL
+    END AS totalAttendees,
 
-        (
-          SELECT MAX(a.attendenceDate)
-          FROM Attendence a
-          WHERE a.classID = c.classID
-        ) AS lastAttendanceDate,
+    latest.latestSubmission AS lastAttendanceDate,
 
-        CASE
-          WHEN DATE((
-            SELECT MAX(a.attendenceDate)
-            FROM Attendence a
-            WHERE a.classID = c.classID
-          )) = ?
-          THEN 1
-          ELSE 0
-        END AS submittedToday
+    CASE
+      WHEN DATE(latest.latestSubmission) = ? THEN 1
+      ELSE 0
+    END AS submittedToday
 
-      FROM Classes c
-      ORDER BY c.className ASC
-    `;
+  FROM Classes c
+  LEFT JOIN Students s
+    ON s.classID = c.classID
+  LEFT JOIN (
+    SELECT
+      classID,
+      MAX(attendenceDate) AS latestSubmission
+    FROM Attendence
+    GROUP BY classID
+  ) latest
+    ON latest.classID = c.classID
+  LEFT JOIN Attendence a
+    ON a.classID = c.classID
+    AND a.attendenceDate = latest.latestSubmission
 
-    const [cards] = await db.query(classQuery, [kuwaitDate]);
+  GROUP BY c.classID, c.className, latest.latestSubmission
+  ORDER BY c.className ASC
+`;
+
+    const [cards] = await db.query(classQuery, [kuwaitDate, kuwaitDate, kuwaitDate]);
 
     res.render('superadmin-dashboard', {
       cards
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Database Error');
+    res.status(500).send("Database Error");
   }
 });
 
@@ -285,52 +275,53 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
       gradeParams = [selectedDate];
     } else {
       gradeQuery = `
-        SELECT
-          gradeLevel,
-          totalStudents,
-          totalPresent,
-          totalAbsent,
-          lastAttendanceDate,
-          totalSectors,
-          submittedSectors,
-          CASE
-            WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
-            ELSE 0
-          END AS allSubmitted
-        FROM (
-          SELECT
-            SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
-            COUNT(DISTINCT s.studentID) AS totalStudents,
-            SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
-            SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
-            MAX(a.attendenceDate) AS lastAttendanceDate,
-            COUNT(DISTINCT c.classID) AS totalSectors,
-            COUNT(DISTINCT CASE
-              WHEN DATE(latest.latestSubmission) = ? THEN c.classID
-              ELSE NULL
-            END) AS submittedSectors
-          FROM Classes c
-          LEFT JOIN Students s
-            ON s.classID = c.classID
-          LEFT JOIN Attendence a
-            ON a.studentID = s.studentID
-            AND a.attendenceDate = (
-              SELECT MAX(a2.attendenceDate)
-              FROM Attendence a2
-              WHERE a2.classID = c.classID
-            )
-          LEFT JOIN (
-            SELECT classID, MAX(attendenceDate) AS latestSubmission
-            FROM Attendence
-            GROUP BY classID
-          ) latest
-            ON latest.classID = c.classID
-          GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
-        ) AS groupedGrades
-        ORDER BY CAST(gradeLevel AS UNSIGNED)
-      `;
-      gradeParams = [effectiveDate];
-    }
+  SELECT
+    gradeLevel,
+    totalStudents,
+    totalPresent,
+    totalAbsent,
+    lastAttendanceDate,
+    totalSectors,
+    submittedSectors,
+    CASE
+      WHEN totalSectors = submittedSectors AND totalSectors > 0 THEN 1
+      ELSE 0
+    END AS allSubmitted
+  FROM (
+    SELECT
+      SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+      COUNT(DISTINCT s.studentID) AS totalStudents,
+      SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
+      SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent,
+      MAX(latest.latestSubmission) AS lastAttendanceDate,
+      COUNT(DISTINCT c.classID) AS totalSectors,
+      COUNT(DISTINCT CASE
+        WHEN latest.latestSubmission IS NOT NULL THEN c.classID
+        ELSE NULL
+      END) AS submittedSectors
+    FROM Classes c
+    LEFT JOIN Students s
+      ON s.classID = c.classID
+    LEFT JOIN (
+      SELECT
+        classID,
+        MAX(attendenceDate) AS latestSubmission
+      FROM Attendence
+      WHERE DATE(attendenceDate) = ?
+      GROUP BY classID
+    ) latest
+      ON latest.classID = c.classID
+    LEFT JOIN Attendence a
+      ON a.classID = c.classID
+      AND a.studentID = s.studentID
+      AND a.attendenceDate = latest.latestSubmission
+    GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
+  ) AS groupedGrades
+  ORDER BY CAST(gradeLevel AS UNSIGNED)
+`;
+gradeParams = [effectiveDate];
+}
+
 
     let overallQuery = '';
     let overallParams = [];
@@ -408,7 +399,7 @@ app.get('/superadmin/attendance-records', requireSuperAdmin, async (req, res) =>
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Database Error');
+    res.status(500).send("Database Error");
   }
 });
 
