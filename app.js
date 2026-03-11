@@ -592,7 +592,7 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
     Object.keys(groupedByGrade)
       .sort((a, b) => Number(a) - Number(b))
       .forEach(gradeLevel => {
-        const worksheet = workbook.addWorksheet(`${gradeLevel} :الصف `);
+        const worksheet = workbook.addWorksheet(`${gradeLevel} الصف `);
         const rows = groupedByGrade[gradeLevel];
         const totals = totalsMap[gradeLevel] || { totalPresent: 0, totalAbsent: 0 };
 
