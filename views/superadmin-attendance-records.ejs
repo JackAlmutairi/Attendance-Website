@@ -356,6 +356,7 @@
       <input type="date" name="selectedDate" value="<%= selectedDate || new Date().toISOString().split('T')[0] %>">
       <button type="submit" class="btn primary">إظهار</button>
       <a href="/superadmin/attendance-records" class="btn">امسح</a>
+      <a href="/superadmin/export-attendance?selectedDate=<%= selectedDate || '' %>" class="btn">إنشاء تقرير</a>
     </form>
 
     <div class="grade-summary-grid">

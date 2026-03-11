@@ -9,11 +9,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const session = require('express-session');
 const db = require('./db-connector');
+const ExcelJS = require('exceljs');
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallbacksecret',
@@ -505,6 +507,149 @@ app.post('/attendance', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Database Error");
+  }
+});
+
+app.get('/superadmin/export-attendance', requireSuperAdmin, async (req, res) => {
+  try {
+
+    const kuwaitDate = new Date().toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Kuwait'
+  });
+
+const selectedDate = req.query.selectedDate || kuwaitDate;
+
+    const detailsQuery = `
+      SELECT
+        c.className,
+        SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+        s.studentName,
+        a.status,
+        DATE(a.attendenceDate) AS attendanceDate
+      FROM Attendence a
+      JOIN Classes c ON a.classID = c.classID
+      JOIN Students s ON a.studentID = s.studentID
+      JOIN (
+        SELECT
+          classID,
+          MAX(attendenceDate) AS latestSubmission
+        FROM Attendence
+        WHERE DATE(attendenceDate) = ?
+        GROUP BY classID
+      ) latest
+        ON a.classID = latest.classID
+        AND a.attendenceDate = latest.latestSubmission
+      ORDER BY CAST(SUBSTRING_INDEX(c.className, '-', 1) AS UNSIGNED), c.className, s.studentName
+    `;
+
+    const totalsByGradeQuery = `
+  SELECT *
+  FROM (
+    SELECT
+      SUBSTRING_INDEX(c.className, '-', 1) AS gradeLevel,
+      COUNT(CASE WHEN a.status = 'Present' THEN 1 END) AS totalPresent,
+      COUNT(CASE WHEN a.status = 'Absent' THEN 1 END) AS totalAbsent
+    FROM Attendence a
+    JOIN Classes c ON a.classID = c.classID
+    JOIN (
+      SELECT
+        classID,
+        MAX(attendenceDate) AS latestSubmission
+      FROM Attendence
+      WHERE DATE(attendenceDate) = ?
+      GROUP BY classID
+    ) latest
+      ON a.classID = latest.classID
+      AND a.attendenceDate = latest.latestSubmission
+    GROUP BY SUBSTRING_INDEX(c.className, '-', 1)
+  ) AS groupedTotals
+  ORDER BY CAST(groupedTotals.gradeLevel AS UNSIGNED)
+`;
+
+    const [details] = await db.query(detailsQuery, [selectedDate]);
+    const [totalsByGrade] = await db.query(totalsByGradeQuery, [selectedDate]);
+
+    const workbook = new ExcelJS.Workbook();
+
+    // Group totals by grade
+    const totalsMap = {};
+    totalsByGrade.forEach(row => {
+      totalsMap[row.gradeLevel] = {
+        totalPresent: row.totalPresent || 0,
+        totalAbsent: row.totalAbsent || 0
+      };
+    });
+
+    // Group detail rows by grade
+    const groupedByGrade = {};
+    details.forEach(row => {
+      if (!groupedByGrade[row.gradeLevel]) {
+        groupedByGrade[row.gradeLevel] = [];
+      }
+      groupedByGrade[row.gradeLevel].push(row);
+    });
+
+    Object.keys(groupedByGrade)
+      .sort((a, b) => Number(a) - Number(b))
+      .forEach(gradeLevel => {
+        const worksheet = workbook.addWorksheet(`${gradeLevel} :الصف `);
+        const rows = groupedByGrade[gradeLevel];
+        const totals = totalsMap[gradeLevel] || { totalPresent: 0, totalAbsent: 0 };
+
+        worksheet.getCell('A1').value = `تاريخ: ${selectedDate}`;
+        worksheet.getCell('A2').value = `الصف: ${gradeLevel}`;
+        worksheet.getCell('A3').value = `إجمالي الحضور: ${totals.totalPresent}`;
+        worksheet.getCell('A4').value = `إجمالي الغياب: ${totals.totalAbsent}`;
+
+        worksheet.getCell('A1').font = { bold: true, size: 14 };
+        worksheet.getCell('A2').font = { bold: true };
+        worksheet.getCell('A3').font = { bold: true };
+        worksheet.getCell('A4').font = { bold: true };
+
+        let currentRow = 6;
+        let currentClass = '';
+
+        rows.forEach(row => {
+          if (row.className !== currentClass) {
+            currentClass = row.className;
+
+            worksheet.getCell(`A${currentRow}`).value = currentClass;
+            worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
+            currentRow++;
+
+            worksheet.getCell(`A${currentRow}`).value = 'الطالبات';
+            worksheet.getCell(`B${currentRow}`).value = 'حالة';
+            worksheet.getRow(currentRow).font = { bold: true };
+            currentRow++;
+          }
+
+          worksheet.getCell(`A${currentRow}`).value = row.studentName;
+          const arabicStatus = row.status === 'Present' ? 'حاضر' : 'غائب';
+          worksheet.getCell(`B${currentRow}`).value = arabicStatus;
+          currentRow++;
+        });
+
+        worksheet.columns = [
+          { key: 'الطالباتt', width: 30 },
+          { key: 'حالة', width: 18 }
+        ];
+      });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=Attendance-${selectedDate}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Database Error');
   }
 });
 
