@@ -146,24 +146,6 @@
   }
 </style>
 
-<script>
-document.querySelectorAll('.class-row').forEach(row => {
-  row.addEventListener('click', function(e) {
-    const checkbox = row.querySelector('input[type="checkbox"]');
-    if (!checkbox) return;
-
-    // If the actual checkbox was clicked, let the browser handle it
-    if (e.target === checkbox) return;
-
-    // If the toggle label was clicked, let the label handle it
-    if (e.target.closest('.toggleButton')) return;
-
-    checkbox.checked = !checkbox.checked;
-    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-});
-</script>
-
 <div class="classes-wrap">
   <div class="classes-header">
     <div>
@@ -237,3 +219,18 @@ document.querySelectorAll('.class-row').forEach(row => {
     </div>
   </form>
 </div>
+<script>
+document.querySelectorAll('.class-row').forEach(row => {
+  row.addEventListener('click', function(e) {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    if (!checkbox) return;
+
+    if (e.target === checkbox) return;
+    if (e.target.closest('.toggleButton')) return;
+    if (e.target.closest('.class-row__main')) return;
+
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+});
+</script>
