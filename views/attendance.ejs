@@ -37,7 +37,7 @@
 
   .class-row {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     flex-wrap: nowrap;
     gap: 0.75rem;
@@ -49,6 +49,9 @@
     transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    box-sizing: border-box;
+    
   }
 
   .class-row:hover {
@@ -65,6 +68,7 @@
     min-width: 0;
     direction: rtl;
     text-align: right;
+    overflow: hidden;
   }
 
   .class-row__name {
@@ -76,6 +80,8 @@
     text-align: right;
     direction: rtl;
     width: 100%;
+    word-break: break-word;
+    line-height: 1.4;
   }
 
   .class-row__actions {
@@ -139,6 +145,24 @@
     box-sizing: border-box;
   }
 </style>
+
+<script>
+document.querySelectorAll('.class-row').forEach(row => {
+  row.addEventListener('click', function(e) {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    if (!checkbox) return;
+
+    // If the actual checkbox was clicked, let the browser handle it
+    if (e.target === checkbox) return;
+
+    // If the toggle label was clicked, let the label handle it
+    if (e.target.closest('.toggleButton')) return;
+
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+});
+</script>
 
 <div class="classes-wrap">
   <div class="classes-header">
