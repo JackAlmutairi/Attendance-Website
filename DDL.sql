@@ -32,7 +32,6 @@ CREATE TABLE Students (
     studentID int AUTO_INCREMENT NOT NULL,
     studentName varchar(100) NOT NULL,
     classID int NOT NULL,
-    status varchar(20) NOT NULL DEFAULT 'Present',
 
     PRIMARY KEY (studentID),
     FOREIGN KEY (classID) REFERENCES Classes(classID)
@@ -105,7 +104,6 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('6-', t.sector);
@@ -128,7 +126,6 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('7-', t.sector);
@@ -152,7 +149,6 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('8-', t.sector);
@@ -177,7 +173,6 @@ INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
     c.classID,
-    'Present'
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('9-', t.sector);

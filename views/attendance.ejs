@@ -39,14 +39,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.75rem;
-    padding: 1rem 1.25rem;
+    padding: 0.8rem 1rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
     transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .class-row:hover {
@@ -55,19 +57,25 @@
   }
 
   .class-row__main {
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     flex: 1;
     min-width: 0;
+    direction: rtl;
+    text-align: right;
   }
 
   .class-row__name {
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: 700;
     color: var(--text);
     margin: 0;
     letter-spacing: 0.2px;
+    text-align: right;
+    direction: rtl;
+    width: 100%;
   }
 
   .class-row__actions {
@@ -76,7 +84,6 @@
     gap: 0.5rem;
     flex-shrink: 0;
   }
-
   .sub-btn {
     display: inline-flex;
     align-items: center;
@@ -117,18 +124,19 @@
   }
 
   .submit-area {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 15px;
-    flex-wrap: wrap;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
 
   .submit-area input {
     height: 36px;
     padding: 5px 10px;
     border-radius: 6px;
     border: 1px solid var(--border);
+    width: 100%;
+    box-sizing: border-box;
   }
 </style>
 
@@ -145,51 +153,63 @@
     <input type="hidden" name="currentTeacherID" value="<%= classRow ? classRow.currentTeacherID : '' %>">
 
     <% if (students && students.length) { %>
-      <div class="classes-list">
-        <% students.forEach(s => { %>
-          <div class="class-row">
-            <div class="class-row__main">
-              <h2 class="class-row__name" id="<%= s.studentID %>"><%= s.studentName %></h2>
-            </div>
+  <div class="classes-list">
+    <% students.forEach(s => { %>
+      <div class="class-row">
+        <label class="class-row__main" for="student-<%= s.studentID %>">
+          <h2 class="class-row__name"><%= s.studentName %></h2>
+        </label>
 
-            <div class="class-row__actions">
-              <input type="hidden" name="<%= s.studentID %>" value="Absent">
+        <div class="class-row__actions">
+          <input type="hidden" name="<%= s.studentID %>" value="Absent">
 
-              <div class="checkbox-wrapper-44">
-                <label class="toggleButton">
-                  <input
-                    type="checkbox"
-                    name="<%= s.studentID %>"
-                    value="Present"
-                    aria-label="Mark <%= s.studentName %> present"
-                    <%= s.status === 'Present' ? 'checked' : '' %>
-                  >
+          <div class="checkbox-wrapper-44">
+            <label class="toggleButton" for="student-<%= s.studentID %>">
+              <input
+                id="student-<%= s.studentID %>"
+                type="checkbox"
+                name="<%= s.studentID %>"
+                value="Present"
+                aria-label="Mark <%= s.studentName %> present"
+                checked
+              >
 
-                  <div>
-                    <svg viewBox="0 0 44 44">
-                      <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2.000000, -2.000000)"></path>
-                    </svg>
-                  </div>
-                </label>
+              <div>
+                <svg viewBox="0 0 44 44">
+                  <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2.000000, -2.000000)"></path>
+                </svg>
               </div>
-            </div>
+            </label>
           </div>
-        <% }) %>
+        </div>
       </div>
-    <% } else { %>
-      <div class="empty-state">
-        لم يتم العثور على أي طلاب حتى الآن. أضف طالبًا لبدء تسجيل الحضور.
-      </div>
-    <% } %>
+    <% }) %>
+  </div>
+<% } else { %>
+  <div class="empty-state">
+    لم يتم العثور على أي طلاب حتى الآن. أضف طالبًا لبدء تسجيل الحضور.
+  </div>
+<% } %>
 
     <br>
 
     <div class="submit-area">
-      <input type="text" name="currentTeacher" id="currentTeacher" placeholder="اسم المعلمة" required>
+      <input
+  type="text"
+  name="currentTeacher"
+  id="currentTeacher"
+  placeholder="اسم المعلمة"
+  value="<%= teacherName || '' %>"
+  required
+>
       <button type="submit" class="sub-btn">إرسال الحضور</button>
       <p class="classes-subtitle">
-        Last updated: <%= date ? new Date(date).toLocaleString() : "No submissions yet" %> by <%= teacherName %>
-      </p>
+  <% if (date) { %>
+    Last updated: <%= new Date(date).toLocaleString('en-GB', { timeZone: 'Asia/Kuwait' }) %><%= teacherName ? ' by ' + teacherName : '' %>
+  <% } else { %>
+    No submissions yet
+  <% } %>
+</p>
     </div>
   </form>
 </div>

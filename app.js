@@ -452,11 +452,11 @@ app.get('/attendance', requireAdmin, async function (req, res) {
     `;
 
     const studentQuery = `
-      SELECT studentID, studentName, status
-      FROM Students
-      WHERE classID = ?
-      ORDER BY studentName ASC
-    `;
+  SELECT studentID, studentName
+  FROM Students
+  WHERE classID = ?
+  ORDER BY studentName ASC
+`;
 
     const getDate = `
       SELECT attendenceDate
@@ -566,11 +566,6 @@ app.post('/attendance', requireAdmin, async (req, res) => {
       if (Array.isArray(status)) {
         status = status[status.length - 1];
       }
-
-      await db.query(
-        "UPDATE Students SET status = ? WHERE studentID = ?",
-        [status, studentID]
-      );
 
       await db.query(
         "INSERT INTO Attendence (attendenceDate, classID, studentID, currentTeacherID, status) VALUES (?, ?, ?, ?, ?)",
