@@ -452,10 +452,26 @@ app.get('/attendance', requireAdmin, async function (req, res) {
     `;
 
     const studentQuery = `
-  SELECT studentID, studentName
-  FROM Students
-  WHERE classID = ?
-  ORDER BY studentName ASC
+  SELECT 
+    s.studentID,
+    s.studentName,
+    COALESCE(a.status, 'Present') AS status
+  FROM Students s
+  LEFT JOIN (
+    SELECT a1.studentID, a1.status
+    FROM Attendence a1
+    JOIN (
+      SELECT classID, MAX(attendenceDate) AS latestSubmission
+      FROM Attendence
+      WHERE classID = ? AND DATE(attendenceDate) = ?
+      GROUP BY classID
+    ) latest
+      ON a1.classID = latest.classID
+      AND a1.attendenceDate = latest.latestSubmission
+  ) a
+    ON s.studentID = a.studentID
+  WHERE s.classID = ?
+  ORDER BY s.studentName ASC
 `;
 
     const getDate = `
@@ -472,7 +488,7 @@ app.get('/attendance', requireAdmin, async function (req, res) {
       return res.status(404).send("Class not found");
     }
 
-    const [students] = await db.query(studentQuery, [classID]);
+    const [students] = await db.query(studentQuery, [classID, kuwaitDate, classID]);
     const [lastUpdate] = await db.query(getDate, [classID]);
 
     const classRow = classRows[0];

@@ -177,7 +177,7 @@
                 name="<%= s.studentID %>"
                 value="Present"
                 aria-label="Mark <%= s.studentName %> present"
-                checked
+                <%= s.status === 'Present' ? 'checked' : '' %>
               >
 
               <div>
