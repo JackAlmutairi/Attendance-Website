@@ -351,8 +351,6 @@
 </div>
 
 </div>
-    </div>
-
     <h2 class="page-title">ملخص الصفوف</h2>
     <p class="page-subtitle">إجمالي الحضور والغياب حسب الصف</p>
 
@@ -362,7 +360,7 @@
       <button type="submit" class="btn primary">إظهار</button>
       <a href="/superadmin/attendance-records" class="btn">امسح</a>
       <a 
-href="/superadmin/export-attendance?selectedDate=<%= selectedDate %>" class="btn primary <%= records.length === 0 ? 'disabled' : '' %>"<%= records.length === 0 ? 'onclick="return false;"' : '' %>>إنشاء تقرير</a>
+href="/superadmin/export-attendance?selectedDate=<%= selectedDate %>" class="btn primary <%= records.length === 0 ? 'disabled' : '' %>" <%= records.length === 0 ? 'onclick="return false;"' : '' %>>إنشاء تقرير</a>
     </form>
 
     <div class="grade-summary-grid">
