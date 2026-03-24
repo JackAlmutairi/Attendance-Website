@@ -1,4 +1,8 @@
 <%- include('../partials/header') %>
+<%
+  students = students || [];
+  classes = classes || [];
+%>
 
 <style>
   .owner-wrap {
@@ -156,16 +160,123 @@
     min-width: 120px;
   }
 
-  @keyframes modalFade {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+.student-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.student-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(48, 108, 134, 0.10);
+  flex-wrap: wrap;
+}
+
+.student-header strong {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.student-class {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: rgba(48, 108, 134, 0.08);
+  border: 1px solid rgba(48, 108, 134, 0.14);
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+}
+
+.class-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+
+.student-actions {
+  margin-top: 0.75rem;
+}
+
+.student-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #f9fbfc;
+  flex-wrap: nowrap;
+}
+
+/* this is the important part */
+.student-action-row,
+.delete-form {
+  display: contents;
+}
+
+.student-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.student-action-bar select {
+  flex: 0 0 110px;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.student-action-bar .btn {
+  min-width: 120px;
+  min-height: 2.25rem;
+  height: auto;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: inherit;
+  padding: 0 0.85rem;
+}
+
+@media (max-width: 700px) {
+  .student-action-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
+
+  .student-name-input,
+  .student-action-bar select,
+  .student-action-bar .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .student-action-bar select {
+    flex: unset;
+  }
+}
+
 </style>
 
 <div class="owner-wrap">
@@ -222,79 +333,116 @@
   </div>
 
   <div class="owner-card">
-    <h2 class="owner-section-title">إعادة ضبط بيانات الطالبات</h2>
-    <p class="danger-note">سيتم حذف جميع بيانات الطالبات من قاعدة البيانات.</p>
+
+  <h2 class="owner-section-title">إدارة الطالبات</h2>
+
+  <p class="owner-subtitle">
+    ابحث عن طالبة ثم قم بنقلها إلى صف آخر أو حذفها من النظام.
+  </p>
+
+  <form action="/superadmin/find-student" method="GET" class="owner-form">
+    <input
+      type="text"
+      name="studentName"
+      placeholder="أدخل اسم الطالبة"
+      required
+    >
+
+    <button type="submit" class="btn primary">
+      بحث
+    </button>
+  </form>
+
+  <% if (typeof students !== 'undefined' && students.length > 0) { %>
+
+    <hr style="margin:1rem 0">
+
+    <% students.forEach(student => { %>
+
+      <div class="student-card">
+
+        <div class="student-header">
+          <strong><%= student.name %></strong>
+
+          <span class="student-class">
+            الصف:
+            <span class="class-code">
+              <%= student.className %>
+            </span>
+          </span>
+        </div>
+
+        <div class="student-actions">
+  <div class="student-action-bar">
 
     <form
-      class="owner-form"
-      action="/superadmin/reset-students"
+      action="/superadmin/update-student"
       method="POST"
-      onsubmit="return confirm('هل أنت متأكد من حذف جميع بيانات الطالبات؟');"
+      class="student-action-row"
     >
       <input
-        type="password"
-        name="password"
-        placeholder="أدخل كلمة مرور الإدارة"
+        type="hidden"
+        name="studentID"
+        value="<%= student.studentID %>"
+      >
+
+      <input
+        type="text"
+        name="studentName"
+        value="<%= student.name %>"
+        class="student-name-input"
         required
       >
 
-      <button type="submit" class="btn">حذف بيانات الطالبات</button>
-    </form>
-  </div>
+      <select name="className" required>
+        <% classes.forEach(c => { %>
+          <option
+            value="<%= c.className %>"
+            <%= c.className === student.className ? 'selected' : '' %>
+          >
+            <%= c.className %>
+          </option>
+        <% }) %>
+      </select>
 
-  <div class="owner-card">
-    <h2 class="owner-section-title">إعادة ضبط سجلات الحضور</h2>
-    <p class="danger-note">سيتم حذف جميع سجلات الحضور من النظام.</p>
+      <button type="submit" class="btn primary">
+        حفظ التعديلات
+      </button>
+    </form>
 
     <form
-      class="owner-form"
-      action="/superadmin/reset-attendance"
+      action="/superadmin/delete-student"
       method="POST"
-      onsubmit="return confirm('هل أنت متأكد من حذف جميع سجلات الحضور؟');"
+      class="delete-form"
     >
       <input
-        type="password"
-        name="password"
-        placeholder="أدخل كلمة مرور الإدارة"
-        required
+        type="hidden"
+        name="studentID"
+        value="<%= student.studentID %>"
       >
 
-      <button type="submit" class="btn">حذف سجلات الحضور</button>
+      <button
+        type="submit"
+        class="btn delete-btn"
+        onclick="return confirm('هل تريد حذف هذه الطالبة؟');"
+      >
+        حذف الطالبة
+      </button>
     </form>
-  </div>
 
+  </div>
 </div>
+</div>
+    <% }) %>
 
-<div id="importModal" class="modal-overlay">
-  <div class="modal-box">
-    <h3 class="modal-title">تأكيد استيراد الطالبات</h3>
+  <% } else if (typeof students !== 'undefined' && students.length === 0) { %>
 
-    <p class="modal-text">
-      المتابعة ستؤدي إلى حذف جميع بيانات الطالبات الحالية واستبدالها بالملف الجديد.
-      هل أنت متأكد من المتابعة؟
+    <p class="owner-subtitle" style="margin-top:1rem">
+      لا توجد طالبات مطابقة للبحث.
     </p>
 
-    <label class="modal-label" for="modalOwnerPassword">
-      كلمة مرور الإدارة
-    </label>
+  <% } %>
 
-    <input
-      type="password"
-      id="modalOwnerPassword"
-      class="modal-input"
-      placeholder="أدخل كلمة مرور الإدارة"
-    >
-
-    <div class="modal-actions">
-      <button type="button" class="btn danger-btn" onclick="submitImportForm()">
-        تأكيد الاستيراد
-      </button>
-
-      <button type="button" class="btn" onclick="closeImportModal()">
-        إلغاء
-      </button>
-    </div>
-  </div>
 </div>
 
 <script>
