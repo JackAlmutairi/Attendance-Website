@@ -55,7 +55,7 @@ function isAttendanceOpen() {
   const totalMinutes = hour * 60 + minute;
 
   const start = 8 * 60;   // 8:00 AM
-  const end = 11 * 60;    // 11:00 AM
+  const end = 13 * 60;     // 1:00 PM
 
   return totalMinutes >= start && totalMinutes <= end;
 }
