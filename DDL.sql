@@ -148,7 +148,7 @@ IGNORE 1 ROWS
 INSERT INTO Students (studentName, classID, status)
 SELECT
     t.studentName,
-    c.classID,
+    c.classID
 FROM temp_students t
 JOIN Classes c
 ON c.className = CONCAT('8-', t.sector);
@@ -169,7 +169,7 @@ IGNORE 1 ROWS
 (studentName, sector);
 
 
-INSERT INTO Students (studentName, classID, status)
+INSERT INTO Students (studentName, classID)
 SELECT
     t.studentName,
     c.classID,

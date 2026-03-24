@@ -10,6 +10,15 @@ const PORT = process.env.PORT || 3000;
 const session = require('express-session');
 const db = require('./db-connector');
 const ExcelJS = require('exceljs');
+const multer = require('multer');
+const XLSX = require('xlsx');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
+  }
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -746,6 +755,184 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
     res.status(500).send('Database Error');
   }
 });
+
+
+app.get('/superadmin/owner', requireSuperAdmin, (req, res) => {
+  res.render('superadmin-owner', {
+    message: null,
+    error: null
+  });
+});
+
+
+app.post('/superadmin/reset-students', requireSuperAdmin, async (req, res) => {
+  const password = (req.body.password || '').trim();
+
+  if (password !== process.env.OWNER_PASSWORD) {
+    return res.status(403).render('superadmin-owner', {
+      message: null,
+      error: 'كلمة مرور الإدارة غير صحيحة.'
+    });
+  }
+
+  try {
+    await db.query('DELETE FROM Students');
+
+    res.render('superadmin-owner', {
+      message: 'تم حذف جميع بيانات الطالبات بنجاح.',
+      error: null
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).render('superadmin-owner', {
+      message: null,
+      error: 'فشل حذف بيانات الطالبات.'
+    });
+  }
+});
+
+app.post('/superadmin/reset-attendance', requireSuperAdmin, async (req, res) => {
+  const password = (req.body.password || '').trim();
+
+  if (password !== process.env.OWNER_PASSWORD) {
+    return res.status(403).render('superadmin-owner', {
+      message: null,
+      error: 'كلمة مرور الإدارة غير صحيحة.'
+    });
+  }
+
+  try {
+    await db.query('DELETE FROM Attendence');
+
+    res.render('superadmin-owner', {
+      message: 'تم حذف جميع سجلات الحضور بنجاح.',
+      error: null
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).render('superadmin-owner', {
+      message: null,
+      error: 'فشل حذف سجلات الحضور.'
+    });
+  }
+});
+
+app.post(
+  '/superadmin/import-students',
+  requireSuperAdmin,
+  upload.single('studentsFile'),
+  async (req, res) => {
+    let connection;
+
+    try {
+      const ownerPassword = (req.body.ownerPassword || '').trim();
+
+      if (ownerPassword !== process.env.OWNER_PASSWORD) {
+        return res.status(403).render('superadmin-owner', {
+          message: null,
+          error: 'كلمة مرور الإدارة غير صحيحة.'
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).render('superadmin-owner', {
+          message: null,
+          error: 'يرجى اختيار ملف Excel.'
+        });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const requiredSheets = ['6', '7', '8', '9'];
+
+      connection = await db.getConnection();
+      await connection.beginTransaction();
+
+      // Delete all current students first
+      await connection.query('DELETE FROM Students');
+
+      let insertedCount = 0;
+const seenRows = new Set();
+
+for (const grade of requiredSheets) {
+  const sheet = workbook.Sheets[grade];
+
+  if (!sheet) {
+    throw new Error(`الورقة ${grade} غير موجودة في الملف.`);
+  }
+
+  const rows = XLSX.utils.sheet_to_json(sheet, {
+    defval: ''
+  });
+
+  for (const row of rows) {
+    const studentName = String(row['اسم الطالب'] || '').trim();
+    const sectorRaw = String(row['الشعبة'] || '').trim();
+
+    if (!studentName || !sectorRaw) {
+      continue;
+    }
+
+    const sector = parseInt(sectorRaw, 10);
+
+    if (Number.isNaN(sector)) {
+      throw new Error(`رقم الشعبة غير صحيح في صف من صفوف المرحلة ${grade}.`);
+    }
+
+    const className = `${grade}-${sector}`;
+    const uniqueKey = `${studentName}__${className}`;
+
+    if (seenRows.has(uniqueKey)) {
+      continue;
+    }
+
+    seenRows.add(uniqueKey);
+
+    const [classRows] = await connection.query(
+      'SELECT classID FROM Classes WHERE className = ?',
+      [className]
+    );
+
+    if (classRows.length === 0) {
+      throw new Error(`الفصل ${className} غير موجود في قاعدة البيانات.`);
+    }
+
+    const classID = classRows[0].classID;
+
+    await connection.query(
+      'INSERT INTO Students (studentName, classID) VALUES (?, ?)',
+      [studentName, classID]
+    );
+
+    insertedCount++;
+  }
+}
+
+      await connection.commit();
+
+      return res.render('superadmin-owner', {
+        message: `تم استيراد بيانات الطالبات بنجاح. العدد الكلي: ${insertedCount}`,
+        error: null
+      });
+
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+
+      console.error(error);
+
+      return res.status(500).render('superadmin-owner', {
+        message: null,
+        error: error.message || 'فشل استيراد الملف.'
+      });
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  }
+);
+
 
 /*
     LISTENER

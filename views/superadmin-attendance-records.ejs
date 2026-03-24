@@ -355,13 +355,22 @@
     <p class="page-subtitle">إجمالي الحضور والغياب حسب الصف</p>
 
     <form method="GET" action="/superadmin/attendance-records" class="filter-form">
-      <label for="selectedDate">اختر التاريخ</label>
-      <input type="date" name="selectedDate" value="<%= selectedDate || kuwaitDate %>">
-      <button type="submit" class="btn primary">إظهار</button>
-      <a href="/superadmin/attendance-records" class="btn">امسح</a>
-      <a 
-href="/superadmin/export-attendance?selectedDate=<%= selectedDate %>" class="btn primary <%= records.length === 0 ? 'disabled' : '' %>" <%= records.length === 0 ? 'onclick="return false;"' : '' %>>إنشاء تقرير</a>
-    </form>
+  <label for="selectedDate">اختر التاريخ</label>
+  <input type="date" name="selectedDate" value="<%= selectedDate || kuwaitDate %>">
+  <button type="submit" class="btn primary">إظهار</button>
+  <a href="/superadmin/attendance-records" class="btn">امسح</a>
+
+  <a
+    href="/superadmin/export-attendance?selectedDate=<%= selectedDate %>"
+    class="btn primary <%= records.length === 0 ? 'disabled' : '' %>"
+    <%= records.length === 0 ? 'onclick="return false;"' : '' %>>
+    إنشاء تقرير
+  </a>
+
+  <a href="/superadmin/owner" class="btn primary">
+    لوحة التحكم
+  </a>
+</form>
 
     <div class="grade-summary-grid">
       <% if (gradeCards && gradeCards.length > 0) { %>
