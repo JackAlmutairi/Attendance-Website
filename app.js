@@ -26,14 +26,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is missing');
+}
+
+app.set('trust proxy', 1);
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallbacksecret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
+
 app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
@@ -757,36 +766,27 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
 });
 
 
-app.get('/superadmin/owner', requireSuperAdmin, (req, res) => {
-  res.render('superadmin-owner', {
-    message: null,
-    error: null
-  });
-});
-
-
-app.post('/superadmin/reset-students', requireSuperAdmin, async (req, res) => {
-  const password = (req.body.password || '').trim();
-
-  if (password !== process.env.OWNER_PASSWORD) {
-    return res.status(403).render('superadmin-owner', {
-      message: null,
-      error: 'كلمة مرور الإدارة غير صحيحة.'
-    });
-  }
-
+app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
   try {
-    await db.query('DELETE FROM Students');
+    const [classes] = await db.query(`
+      SELECT className
+      FROM Classes
+      ORDER BY className
+    `);
 
     res.render('superadmin-owner', {
-      message: 'تم حذف جميع بيانات الطالبات بنجاح.',
-      error: null
+      message: req.query.message || null,
+      error: req.query.error || null,
+      students: [],
+      classes
     });
   } catch (error) {
     console.error(error);
-    res.status(500).render('superadmin-owner', {
+    res.render('superadmin-owner', {
       message: null,
-      error: 'فشل حذف بيانات الطالبات.'
+      error: 'فشل تحميل الصفحة.',
+      students: [],
+      classes: []
     });
   }
 });
@@ -794,28 +794,37 @@ app.post('/superadmin/reset-students', requireSuperAdmin, async (req, res) => {
 app.post('/superadmin/reset-attendance', requireSuperAdmin, async (req, res) => {
   const password = (req.body.password || '').trim();
 
-  if (password !== process.env.OWNER_PASSWORD) {
-    return res.status(403).render('superadmin-owner', {
-      message: null,
-      error: 'كلمة مرور الإدارة غير صحيحة.'
-    });
-  }
-
   try {
+    const classes = await getOwnerPageClasses();
+
+    if (password !== process.env.OWNER_PASSWORD) {
+      return res.status(403).render('superadmin-owner', {
+        message: null,
+        error: 'كلمة مرور الإدارة غير صحيحة.',
+        students: [],
+        classes
+      });
+    }
+
     await db.query('DELETE FROM Attendence');
 
-    res.render('superadmin-owner', {
+    return res.render('superadmin-owner', {
       message: 'تم حذف جميع سجلات الحضور بنجاح.',
-      error: null
+      error: null,
+      students: [],
+      classes
     });
   } catch (error) {
     console.error(error);
-    res.status(500).render('superadmin-owner', {
+    return res.status(500).render('superadmin-owner', {
       message: null,
-      error: 'فشل حذف سجلات الحضور.'
+      error: 'فشل حذف سجلات الحضور.',
+      students: [],
+      classes: []
     });
   }
 });
+
 
 app.post(
   '/superadmin/import-students',
@@ -826,18 +835,23 @@ app.post(
 
     try {
       const ownerPassword = (req.body.ownerPassword || '').trim();
+      const classes = await getOwnerPageClasses();
 
       if (ownerPassword !== process.env.OWNER_PASSWORD) {
         return res.status(403).render('superadmin-owner', {
           message: null,
-          error: 'كلمة مرور الإدارة غير صحيحة.'
+          error: 'كلمة مرور الإدارة غير صحيحة.',
+          students: [],
+          classes
         });
       }
 
       if (!req.file) {
         return res.status(400).render('superadmin-owner', {
           message: null,
-          error: 'يرجى اختيار ملف Excel.'
+          error: 'يرجى اختيار ملف Excel.',
+          students: [],
+          classes
         });
       }
 
@@ -847,71 +861,73 @@ app.post(
       connection = await db.getConnection();
       await connection.beginTransaction();
 
-      // Delete all current students first
+      await connection.query('DELETE FROM Attendence');
       await connection.query('DELETE FROM Students');
+      await connection.query('ALTER TABLE Attendence AUTO_INCREMENT = 1');
+      await connection.query('ALTER TABLE Students AUTO_INCREMENT = 1');
 
       let insertedCount = 0;
-const seenRows = new Set();
+      const seenRows = new Set();
 
-for (const grade of requiredSheets) {
-  const sheet = workbook.Sheets[grade];
+      for (const grade of requiredSheets) {
+        const sheet = workbook.Sheets[grade];
 
-  if (!sheet) {
-    throw new Error(`الورقة ${grade} غير موجودة في الملف.`);
-  }
+        if (!sheet) {
+          throw new Error(`الورقة ${grade} غير موجودة في الملف.`);
+        }
 
-  const rows = XLSX.utils.sheet_to_json(sheet, {
-    defval: ''
-  });
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-  for (const row of rows) {
-    const studentName = String(row['اسم الطالب'] || '').trim();
-    const sectorRaw = String(row['الشعبة'] || '').trim();
+        for (const row of rows) {
+          const studentName = String(row['اسم الطالب'] || '').trim();
+          const sectorRaw = String(row['الشعبة'] || '').trim();
 
-    if (!studentName || !sectorRaw) {
-      continue;
-    }
+          if (!studentName || !sectorRaw) {
+            continue;
+          }
 
-    const sector = parseInt(sectorRaw, 10);
+          const sector = parseInt(sectorRaw, 10);
 
-    if (Number.isNaN(sector)) {
-      throw new Error(`رقم الشعبة غير صحيح في صف من صفوف المرحلة ${grade}.`);
-    }
+          if (Number.isNaN(sector)) {
+            throw new Error(`رقم الشعبة غير صحيح في صف من صفوف المرحلة ${grade}.`);
+          }
 
-    const className = `${grade}-${sector}`;
-    const uniqueKey = `${studentName}__${className}`;
+          const className = `${grade}-${sector}`;
+          const uniqueKey = `${studentName}__${className}`;
 
-    if (seenRows.has(uniqueKey)) {
-      continue;
-    }
+          if (seenRows.has(uniqueKey)) {
+            continue;
+          }
 
-    seenRows.add(uniqueKey);
+          seenRows.add(uniqueKey);
 
-    const [classRows] = await connection.query(
-      'SELECT classID FROM Classes WHERE className = ?',
-      [className]
-    );
+          const [classRows] = await connection.query(
+            'SELECT classID FROM Classes WHERE className = ?',
+            [className]
+          );
 
-    if (classRows.length === 0) {
-      throw new Error(`الفصل ${className} غير موجود في قاعدة البيانات.`);
-    }
+          if (classRows.length === 0) {
+            throw new Error(`الفصل ${className} غير موجود في قاعدة البيانات.`);
+          }
 
-    const classID = classRows[0].classID;
+          const classID = classRows[0].classID;
 
-    await connection.query(
-      'INSERT INTO Students (studentName, classID) VALUES (?, ?)',
-      [studentName, classID]
-    );
+          await connection.query(
+            'INSERT INTO Students (studentName, classID) VALUES (?, ?)',
+            [studentName, classID]
+          );
 
-    insertedCount++;
-  }
-}
+          insertedCount++;
+        }
+      }
 
       await connection.commit();
 
       return res.render('superadmin-owner', {
         message: `تم استيراد بيانات الطالبات بنجاح. العدد الكلي: ${insertedCount}`,
-        error: null
+        error: null,
+        students: [],
+        classes
       });
 
     } catch (error) {
@@ -921,9 +937,13 @@ for (const grade of requiredSheets) {
 
       console.error(error);
 
+      const classes = await getOwnerPageClasses().catch(() => []);
+
       return res.status(500).render('superadmin-owner', {
         message: null,
-        error: error.message || 'فشل استيراد الملف.'
+        error: error.message || 'فشل استيراد الملف.',
+        students: [],
+        classes
       });
     } finally {
       if (connection) {
@@ -933,6 +953,107 @@ for (const grade of requiredSheets) {
   }
 );
 
+
+app.get('/superadmin/find-student', requireSuperAdmin, async (req, res) => {
+  try {
+    const studentName = `%${req.query.studentName || ''}%`;
+
+    const [students] = await db.query(`
+      SELECT s.studentID, s.studentName AS name, c.className
+      FROM Students s
+      JOIN Classes c ON s.classID = c.classID
+      WHERE s.studentName LIKE ?
+      ORDER BY s.studentName
+    `, [studentName]);
+
+    const [classes] = await db.query(`
+      SELECT className
+      FROM Classes
+      ORDER BY className
+    `);
+
+    res.render('superadmin-owner', {
+      students,
+      classes,
+      message: null,
+      error: null
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.render('superadmin-owner', {
+      students: [],
+      classes: [],
+      message: null,
+      error: 'فشل البحث.'
+    });
+  }
+});
+
+app.post('/superadmin/update-student', requireSuperAdmin, async (req, res) => {
+  try {
+    const { studentID, studentName, className } = req.body;
+
+    const trimmedName = (studentName || '').trim();
+
+    if (!trimmedName) {
+      return res.redirect(
+        '/superadmin/owner?error=' +
+        encodeURIComponent('اسم الطالبة مطلوب.')
+      );
+    }
+
+    const [rows] = await db.query(
+      'SELECT classID FROM Classes WHERE className = ?',
+      [className]
+    );
+
+    if (rows.length === 0) {
+      return res.redirect(
+        '/superadmin/owner?error=' +
+        encodeURIComponent('الفصل غير موجود.')
+      );
+    }
+
+    const classID = rows[0].classID;
+
+    await db.query(
+      `UPDATE Students 
+       SET studentName = ?, classID = ?
+       WHERE studentID = ?`,
+      [trimmedName, classID, studentID]
+    );
+
+    res.redirect(
+      '/superadmin/owner?message=' +
+      encodeURIComponent('تم تعديل بيانات الطالبة بنجاح.')
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    res.redirect(
+      '/superadmin/owner?error=' +
+      encodeURIComponent('فشل تعديل بيانات الطالبة.')
+    );
+  }
+});
+
+app.post('/superadmin/delete-student', requireSuperAdmin, async (req, res) => {
+  try {
+    const { studentID } = req.body;
+
+    await db.query(
+      'DELETE FROM Students WHERE studentID = ?',
+      [studentID]
+    );
+
+    res.redirect('/superadmin/owner?message=' + encodeURIComponent('تم حذف الطالبة بنجاح.'));
+  } catch (error) {
+    console.error(error);
+    res.redirect('/superadmin/owner?error=' + encodeURIComponent('فشل حذف الطالبة.'));
+  }
+});
 
 /*
     LISTENER
