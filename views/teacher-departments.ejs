@@ -1,0 +1,83 @@
+<style>
+  .teacher-dept-row {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  border: 1px solid #d9e3ea;
+  box-shadow: 0 4px 14px rgba(15, 43, 70, 0.04);
+}
+
+.teacher-dept-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(15, 43, 70, 0.08);
+  border-color: #c7d7e2;
+}
+
+.class-row__hint {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  color: #7a8b98;
+}
+
+.open-btn {
+  min-width: 110px;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(48, 108, 134, 0.16);
+}
+
+.open-btn:hover {
+  transform: translateY(-1px);
+}
+
+.class-row__name {
+  margin-bottom: 2px;
+}
+
+.checkbox-wrapper-44 {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.checkbox-wrapper-44.is-ready {
+  opacity: 1;
+}
+
+</style>
+
+<%- include('../partials/header') %>
+<link rel="stylesheet" href="/css/animation.css">
+<link rel="stylesheet" href="/css/pages.css">
+
+<div class="classes-wrap">
+  <div class="classes-header">
+    <div>
+      <h2 class="classes-title">حضور المعلمات</h2>
+      <p class="classes-subtitle">اختاري القسم</p>
+    </div>
+  </div>
+
+  <div class="classes-list">
+    <% departments.forEach(dept => { %>
+      <div class="class-row teacher-dept-row">
+        <div class="class-row__main">
+          <h3 class="class-row__name"><%= dept.departmentName %></h3>
+
+        </div>
+
+        <div class="class-row__actions">
+          <a href="/teacher-attendance/<%= dept.departmentID %>" class="btn primary open-btn">
+            فتح القسم
+          </a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', function () {
+    document.querySelectorAll('.checkbox-wrapper-44').forEach(function (el) {
+      el.classList.add('is-ready');
+    });
+  });
+</script>

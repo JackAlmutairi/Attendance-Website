@@ -165,6 +165,116 @@ ORDER BY c.className
   }
 });
 
+app.get('/teacher-attendance', requireAdmin, async (req, res) => {
+  try {
+    const [departments] = await db.query(`
+      SELECT departmentID, departmentName
+      FROM TeacherDepartments
+      ORDER BY departmentName
+    `);
+
+    res.render('teacher-departments', {
+      departments,
+      role: req.session.role
+    });
+  } catch (err) {
+    console.error('Error loading teacher departments:', err);
+    res.status(500).send('Database Error');
+  }
+});
+
+app.get('/teacher-attendance/:departmentID', requireAdmin, async (req, res) => {
+  try {
+    const { departmentID } = req.params;
+
+    const [departmentRows] = await db.query(`
+      SELECT departmentID, departmentName
+      FROM TeacherDepartments
+      WHERE departmentID = ?
+    `, [departmentID]);
+
+    if (departmentRows.length === 0) {
+      return res.status(404).send('Department not found');
+    }
+
+    const kuwaitDate = new Date().toLocaleDateString('en-CA', {
+  timeZone: 'Asia/Kuwait'
+});
+
+const [teachers] = await db.query(`
+  SELECT
+    t.teacherID,
+    t.teacherName,
+    COALESCE(a.status, 'Present') AS status
+  FROM SubjectTeachers t
+  LEFT JOIN TeacherAttendance a
+    ON t.teacherID = a.teacherID
+    AND a.attendanceDate = ?
+  WHERE t.departmentID = ?
+  ORDER BY t.teacherName
+`, [kuwaitDate, departmentID]);
+const saved = req.query.saved === '1';
+
+    res.render('teacher-attendance', {
+      department: departmentRows[0],
+      teachers,
+      role: req.session.role,
+      saved
+    });
+  } catch (err) {
+    console.error('Error loading teacher attendance page:', err);
+    res.status(500).send('Database Error');
+  }
+});
+
+app.post('/teacher-attendance', requireAdmin, async (req, res) => {
+  try {
+    const { departmentID } = req.body;
+
+    if (!departmentID) {
+      return res.status(400).send('Missing department ID');
+    }
+
+    const kuwaitDate = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Kuwait'
+    });
+
+    const [teachers] = await db.query(`
+      SELECT teacherID
+      FROM SubjectTeachers
+      WHERE departmentID = ?
+    `, [departmentID]);
+
+    for (const teacher of teachers) {
+      const fieldName = `teacher_${teacher.teacherID}`;
+      let status = req.body[fieldName];
+
+      if (Array.isArray(status)) {
+        status = status[status.length - 1];
+      }
+
+      status = status === 'Present' ? 'Present' : 'Absent';
+
+      await db.query(`
+        INSERT INTO TeacherAttendance (teacherID, attendanceDate, status)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE status = VALUES(status)
+      `, [teacher.teacherID, kuwaitDate, status]);
+    }
+
+    await db.query(`
+      DELETE FROM TeacherAttendance
+      WHERE attendanceDate < ?
+    `, [kuwaitDate]);
+
+    res.redirect(`/teacher-attendance/${departmentID}?saved=1`);
+  } catch (err) {
+    console.error('Error saving teacher attendance:', err);
+    res.status(500).send('Database Error');
+  }
+});
+
+
 app.get('/superadmin/dashboard', requireSuperAdmin, async (req, res) => {
   try {
     const kuwaitDate = new Date().toLocaleDateString('en-CA', {
@@ -766,6 +876,7 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
 });
 
 
+
 app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
   try {
     const [classes] = await db.query(`
@@ -1052,6 +1163,24 @@ app.post('/superadmin/delete-student', requireSuperAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.redirect('/superadmin/owner?error=' + encodeURIComponent('فشل حذف الطالبة.'));
+  }
+});
+
+app.get('/teacher-attendance', requireAdmin, async (req, res) => {
+  try {
+    const [departments] = await db.query(`
+      SELECT departmentID, departmentName
+      FROM TeacherDepartments
+      ORDER BY departmentName
+    `);
+
+    res.render('teacher-departments', {
+      departments,
+      role: req.session.role
+    });
+  } catch (err) {
+    console.error('Error loading teacher departments:', err);
+    res.status(500).send('Database Error');
   }
 });
 

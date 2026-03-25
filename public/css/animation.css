@@ -61,17 +61,17 @@
     border-radius: 5px;
   }
 
-  .checkbox-wrapper-44 .toggleButton input + div::before {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    animation: bounceInBefore-44 0.3s linear forwards 0.3s;
-  }
+.checkbox-wrapper-44 .toggleButton input + div::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(45deg) scale(1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
 
-  .checkbox-wrapper-44 .toggleButton input + div::after {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    animation: bounceInAfter-44 0.3s linear forwards 0.3s;
-  }
+.checkbox-wrapper-44 .toggleButton input + div::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(-45deg) scale(1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
 
   .checkbox-wrapper-44 .toggleButton input:checked + div svg {
     stroke-dashoffset: 162.6;
@@ -79,74 +79,12 @@
     transition: all 0.4s ease 0.2s;
   }
 
-  .checkbox-wrapper-44 .toggleButton input:checked + div::before {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    animation: bounceInBeforeDont-44 0.3s linear forwards 0s;
-  }
+.checkbox-wrapper-44 .toggleButton input:checked + div::before {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.3);
+}
 
-  .checkbox-wrapper-44 .toggleButton input:checked + div::after {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    animation: bounceInAfterDont-44 0.3s linear forwards 0s;
-  }
-
-  @keyframes bounceInBefore-44 {
-    0% {
-      opacity: 0;
-      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-    50% {
-      opacity: 0.9;
-      transform: scale(1.1) translate(-50%, -50%) rotate(45deg);
-    }
-    80% {
-      opacity: 1;
-      transform: scale(0.89) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
-  }
-
-  @keyframes bounceInAfter-44 {
-    0% {
-      opacity: 0;
-      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    }
-    50% {
-      opacity: 0.9;
-      transform: scale(1.1) translate(-50%, -50%) rotate(-45deg);
-    }
-    80% {
-      opacity: 1;
-      transform: scale(0.89) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-  }
-
-  @keyframes bounceInBeforeDont-44 {
-    0% {
-      opacity: 1;
-      transform: scale(1) translate(-50%, -50%) rotate(45deg);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(0.3) translate(-50%, -50%) rotate(45deg);
-    }
-  }
-
-  @keyframes bounceInAfterDont-44 {
-    0% {
-      opacity: 1;
-      transform: scale(1) translate(-50%, -50%) rotate(-45deg);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(0.3) translate(-50%, -50%) rotate(-45deg);
-    }
-  }
+.checkbox-wrapper-44 .toggleButton input:checked + div::after {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-45deg) scale(0.3);
+}

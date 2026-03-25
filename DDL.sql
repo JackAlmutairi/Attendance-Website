@@ -8,20 +8,16 @@ DROP TABLE IF EXISTS temp_students;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-
 CREATE TABLE Teachers (
-    teacherID int AUTO_INCREMENT NOT NULL,
-    teacherName varchar(100) NOT NULL UNIQUE,
-
-
+    teacherID INT AUTO_INCREMENT NOT NULL,
+    teacherName VARCHAR(100) NOT NULL UNIQUE,
     PRIMARY KEY (teacherID)
 );
 
 CREATE TABLE Classes (
-    classID int AUTO_INCREMENT NOT NULL,
-    className varchar(100) NOT NULL,
-    currentTeacherID int DEFAULT NULL,
-
+    classID INT AUTO_INCREMENT NOT NULL,
+    className VARCHAR(100) NOT NULL,
+    currentTeacherID INT DEFAULT NULL,
     PRIMARY KEY (classID),
     FOREIGN KEY (currentTeacherID) REFERENCES Teachers(teacherID)
         ON UPDATE CASCADE
@@ -29,30 +25,29 @@ CREATE TABLE Classes (
 );
 
 CREATE TABLE Students (
-    studentID int AUTO_INCREMENT NOT NULL,
-    studentName varchar(100) NOT NULL,
-    classID int NOT NULL,
-
+    studentID INT AUTO_INCREMENT NOT NULL,
+    studentName VARCHAR(100) NOT NULL,
+    classID INT NOT NULL,
     PRIMARY KEY (studentID),
     FOREIGN KEY (classID) REFERENCES Classes(classID)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
-
 CREATE TABLE Attendence (
-    attendenceID int AUTO_INCREMENT NOT NULL,
+    attendenceID INT AUTO_INCREMENT NOT NULL,
     attendenceDate DATETIME NOT NULL,
-    classID int NOT NULL,
-    studentID int NOT NULL,
-    currentTeacherID int DEFAULT NULL,
-    status varchar(20) NOT NULL DEFAULT 'Present',
+    classID INT NOT NULL,
+    studentID INT NOT NULL,
+    currentTeacherID INT DEFAULT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Present',
 
     PRIMARY KEY (attendenceID),
 
     FOREIGN KEY (classID) REFERENCES Classes(classID)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE,
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
     FOREIGN KEY (studentID) REFERENCES Students(studentID)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -61,6 +56,11 @@ CREATE TABLE Attendence (
         ON UPDATE CASCADE
         ON DELETE SET NULL
 );
+
+CREATE TABLE temp_students (
+    studentName VARCHAR(255) NOT NULL,
+    sector INT
+) CHARACTER SET utf8mb4;
 
 INSERT INTO Classes (className, currentTeacherID) VALUES
 ('6-1', NULL),
@@ -100,13 +100,13 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
 (studentName, sector);
 
-INSERT INTO Students (studentName, classID, status)
+INSERT INTO Students (studentName, classID)
 SELECT
     t.studentName,
-    c.classID,
+    c.classID
 FROM temp_students t
 JOIN Classes c
-ON c.className = CONCAT('6-', t.sector);
+    ON c.className = CONCAT('6-', t.sector);
 
 TRUNCATE TABLE temp_students;
 
@@ -122,13 +122,13 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
 (studentName, sector);
 
-INSERT INTO Students (studentName, classID, status)
+INSERT INTO Students (studentName, classID)
 SELECT
     t.studentName,
-    c.classID,
+    c.classID
 FROM temp_students t
 JOIN Classes c
-ON c.className = CONCAT('7-', t.sector);
+    ON c.className = CONCAT('7-', t.sector);
 
 TRUNCATE TABLE temp_students;
 
@@ -145,13 +145,13 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
 (studentName, sector);
 
-INSERT INTO Students (studentName, classID, status)
+INSERT INTO Students (studentName, classID)
 SELECT
     t.studentName,
     c.classID
 FROM temp_students t
 JOIN Classes c
-ON c.className = CONCAT('8-', t.sector);
+    ON c.className = CONCAT('8-', t.sector);
 
 TRUNCATE TABLE temp_students;
 
@@ -168,14 +168,13 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
 (studentName, sector);
 
-
 INSERT INTO Students (studentName, classID)
 SELECT
     t.studentName,
-    c.classID,
+    c.classID
 FROM temp_students t
 JOIN Classes c
-ON c.className = CONCAT('9-', t.sector);
+    ON c.className = CONCAT('9-', t.sector);
 
 TRUNCATE TABLE temp_students;
 

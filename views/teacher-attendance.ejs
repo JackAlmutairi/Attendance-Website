@@ -1,0 +1,161 @@
+<%- include('../partials/header') %>
+<link rel="stylesheet" href="/css/animation.css">
+
+
+<style>
+  .class-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 92px;
+  padding: 0 22px;
+}
+
+.class-row__main {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: calc(100% - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.class-row__name {
+  margin: 0;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f2b46;
+}
+
+.class-row__actions {
+  margin-left: auto;
+  position: relative;
+  z-index: 2;
+}
+.save-success-card {
+  margin: 14px 0 18px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #e8f7ee;
+  border: 1px solid #b7e4c7;
+  color: #1f6b3b;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  animation: fadeSlideIn 0.35s ease;
+}
+
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+<div class="classes-wrap">
+  <div class="classes-header">
+    <div>
+      <h2 class="classes-title"><%= department.departmentName %></h2>
+      <p class="classes-subtitle">حددي الغائبات لهذا اليوم</p>
+    </div>
+  </div>
+  <% if (saved) { %>
+  <div class="save-success-card" id="saveSuccessCard">
+    تم حفظ الحضور بنجاح
+  </div>
+<% } %>
+
+  <form action="/teacher-attendance" method="POST">
+    <input type="hidden" name="departmentID" value="<%= department.departmentID %>">
+
+    <% if (teachers && teachers.length) { %>
+      <div class="classes-list">
+        <% teachers.forEach(teacher => { %>
+          <div class="class-row">
+            <label class="class-row__main" for="teacher-<%= teacher.teacherID %>">
+              <h2 class="class-row__name"><%= teacher.teacherName %></h2>
+            </label>
+
+            <div class="class-row__actions">
+              <input
+  type="hidden"
+  name="teacher_<%= teacher.teacherID %>"
+  value="Absent"
+>
+
+<div class="checkbox-wrapper-44 <%= teacher.status === 'Present' ? 'is-present' : 'is-absent' %>">
+  <label class="toggleButton" for="teacher-<%= teacher.teacherID %>">
+    <input
+      id="teacher-<%= teacher.teacherID %>"
+      type="checkbox"
+      name="teacher_<%= teacher.teacherID %>"
+      value="Present"
+      aria-label="Mark <%= teacher.teacherName %> present"
+      <%= teacher.status === 'Present' ? 'checked' : '' %>
+    >
+
+                  <div>
+                    <svg viewBox="0 0 44 44">
+                      <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2.000000, -2.000000)"></path>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        لا توجد معلمات في هذا القسم
+      </div>
+    <% } %>
+    <br>
+    <div class="submit-area">
+      <button type="submit" class="sub-btn">حفظ الحضور</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.querySelectorAll('.class-row').forEach(row => {
+  row.addEventListener('click', function(e) {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    if (!checkbox) return;
+
+    if (e.target === checkbox) return;
+    if (e.target.closest('.toggleButton')) return;
+    if (e.target.closest('.class-row__main')) return;
+
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+});
+</script>
+
+<script>
+  const saveCard = document.getElementById('saveSuccessCard');
+
+  if (saveCard) {
+    setTimeout(() => {
+      saveCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      saveCard.style.opacity = '0';
+      saveCard.style.transform = 'translateY(-6px)';
+
+      setTimeout(() => {
+        saveCard.remove();
+      }, 300);
+    }, 3000);
+  }
+</script>
