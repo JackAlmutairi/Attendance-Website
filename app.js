@@ -906,6 +906,8 @@ const selectedDate = req.query.selectedDate || kuwaitDate;
 
 app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
   try {
+    const selectedDepartmentID = req.query.departmentID || '';
+
     const [classes] = await db.query(`
       SELECT className
       FROM Classes
@@ -918,17 +920,21 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
       ORDER BY departmentName
     `);
 
-    const [teachers] = await db.query(`
-      SELECT
-        t.teacherID,
-        t.teacherName,
-        t.departmentID,
-        d.departmentName
-      FROM SubjectTeachers t
-      JOIN TeacherDepartments d
-        ON t.departmentID = d.departmentID
-      ORDER BY t.teacherName
-    `);
+    let teachers = [];
+
+    if (selectedDepartmentID) {
+      const [teacherRows] = await db.query(`
+        SELECT
+          teacherID,
+          teacherName,
+          departmentID
+        FROM SubjectTeachers
+        WHERE departmentID = ?
+        ORDER BY teacherName
+      `, [selectedDepartmentID]);
+
+      teachers = teacherRows;
+    }
 
     res.render('superadmin-owner', {
       message: req.query.message || null,
@@ -936,7 +942,8 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
       students: [],
       classes,
       teachers,
-      departments
+      departments,
+      selectedDepartmentID
     });
   } catch (error) {
     console.error(error);
@@ -946,7 +953,8 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
       students: [],
       classes: [],
       teachers: [],
-      departments: []
+      departments: [],
+      selectedDepartmentID: ''
     });
   }
 });

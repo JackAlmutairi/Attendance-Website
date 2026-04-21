@@ -276,7 +276,20 @@
     flex: unset;
   }
 
-  .teacher-list {
+  .teachers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.teachers-save-btn {
+  min-width: 120px;
+}
+
+.teacher-list {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -284,7 +297,7 @@
 
 .teacher-row {
   display: grid;
-  grid-template-columns: minmax(240px, 1.7fr) minmax(190px, 1fr) 52px;
+  grid-template-columns: 1fr 52px;
   gap: 0.75rem;
   align-items: center;
   border: 1px solid var(--border);
@@ -294,22 +307,7 @@
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 }
 
-.teacher-add-wrap {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.teacher-form {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) minmax(180px, 1fr) 120px 56px;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.teacher-name-input,
-.teacher-dept-select {
+.teacher-name-input {
   width: 100%;
   min-width: 0;
   padding: 0.72rem 0.9rem;
@@ -319,18 +317,6 @@
   background: #fff;
   color: var(--text);
   box-sizing: border-box;
-}
-
-.teacher-dept-select {
-  white-space: normal;
-}
-
-.teacher-add-save-btn {
-  min-width: 120px;
-}
-
-.hidden {
-  display: none;
 }
 
 .teacher-delete-btn {
@@ -343,13 +329,28 @@
   font-weight: 800;
 }
 
+.teacher-add-wrap {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
 .teacher-add-row {
   display: grid;
-  grid-template-columns: minmax(240px, 1.7fr) minmax(190px, 1fr) 120px;
+  grid-template-columns: 1fr 120px;
   gap: 0.75rem;
   align-items: center;
   border-top: 1px solid var(--border);
   padding-top: 0.9rem;
+}
+
+.teacher-add-save-btn {
+  min-width: 120px;
+}
+
+.hidden {
+  display: none;
 }
 
 @media (max-width: 760px) {
@@ -536,61 +537,73 @@
 </div>
 
 <div class="owner-card">
-  <div class="teachers-header">
-    <div>
-      <h2 class="owner-section-title">إدارة المعلمات</h2>
-      <p class="owner-subtitle">
-        يمكنك تعديل اسم المعلمة أو القسم أو حذفها، وإضافة معلمة جديدة من آخر القائمة.
-      </p>
+  <h2 class="owner-section-title">إدارة المعلمات</h2>
+  <p class="owner-subtitle">
+    اختاري القسم لعرض المعلمات وتعديلهن أو حذفهن.
+  </p>
+
+  <form action="/superadmin/owner" method="GET" class="owner-form">
+    <select name="departmentID" required onchange="this.form.submit()">
+      <option value="">اختاري القسم</option>
+      <% departments.forEach(d => { %>
+        <option
+          value="<%= d.departmentID %>"
+          <%= String(selectedDepartmentID) === String(d.departmentID) ? 'selected' : '' %>
+        >
+          <%= d.departmentName %>
+        </option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<% if (selectedDepartmentID) { %>
+  <div class="owner-card">
+    <div class="teachers-header">
+      <div>
+        <h2 class="owner-section-title">معلمات القسم</h2>
+        <p class="owner-subtitle">
+          يمكنك تعديل الأسماء أو حذف المعلمات من هذا القسم.
+        </p>
+      </div>
+
+      <button type="submit" form="teachersForm" class="btn primary teachers-save-btn">
+        حفظ
+      </button>
     </div>
 
-    <button type="submit" form="teachersForm" class="btn primary teachers-save-btn">
-      حفظ
-    </button>
-  </div>
-
-  <% if (typeof teachers !== 'undefined' && teachers.length > 0) { %>
     <form id="teachersForm" action="/superadmin/update-teachers" method="POST">
-      <div class="teacher-list">
-        <% teachers.forEach(teacher => { %>
-          <div class="teacher-row">
-            <input type="hidden" name="teacherID" value="<%= teacher.teacherID %>">
+      <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
 
-            <input
-              type="text"
-              name="teacherName_<%= teacher.teacherID %>"
-              value="<%= teacher.teacherName %>"
-              class="teacher-name-input"
-              required
-            >
+      <% if (teachers && teachers.length > 0) { %>
+        <div class="teacher-list">
+          <% teachers.forEach(teacher => { %>
+            <div class="teacher-row">
+              <input type="hidden" name="teacherID" value="<%= teacher.teacherID %>">
 
-            <select
-              name="departmentID_<%= teacher.teacherID %>"
-              class="teacher-dept-select"
-              required
-            >
-              <% departments.forEach(d => { %>
-                <option
-                  value="<%= d.departmentID %>"
-                  <%= d.departmentID === teacher.departmentID ? 'selected' : '' %>
-                >
-                  <%= d.departmentName %>
-                </option>
-              <% }) %>
-            </select>
+              <input
+                type="text"
+                name="teacherName_<%= teacher.teacherID %>"
+                value="<%= teacher.teacherName %>"
+                class="teacher-name-input"
+                required
+              >
 
-            <button
-              type="submit"
-              form="deleteTeacherForm_<%= teacher.teacherID %>"
-              class="btn delete-btn teacher-delete-btn"
-              onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
-              title="حذف"
-            >
-              ×
-            </button>
-          </div>
-        <% }) %>
-      </div>
+              <button
+                type="submit"
+                form="deleteTeacherForm_<%= teacher.teacherID %>"
+                class="btn delete-btn teacher-delete-btn"
+                onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
+                title="حذف"
+              >
+                ×
+              </button>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="owner-subtitle">لا توجد معلمات في هذا القسم حالياً.</p>
+      <% } %>
     </form>
 
     <% teachers.forEach(teacher => { %>
@@ -601,52 +614,48 @@
         style="display:none;"
       >
         <input type="hidden" name="teacherID" value="<%= teacher.teacherID %>">
+        <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
       </form>
     <% }) %>
 
-  <% } else { %>
-    <p class="owner-subtitle">لا توجد معلمات حالياً.</p>
-  <% } %>
-
-  <div class="teacher-add-wrap">
-    <button type="button" class="btn primary" onclick="toggleAddTeacherRow()">
-      إضافة معلمة
-    </button>
-
-    <form
-      id="addTeacherRow"
-      action="/superadmin/add-teacher"
-      method="POST"
-      class="teacher-add-row hidden"
-    >
-      <input
-        type="text"
-        name="teacherName"
-        class="teacher-name-input"
-        placeholder="اسم المعلمة الجديدة"
-        required
-      >
-
-      <select name="departmentID" class="teacher-dept-select" required>
-        <% departments.forEach(d => { %>
-          <option value="<%= d.departmentID %>"><%= d.departmentName %></option>
-        <% }) %>
-      </select>
-
-      <button type="submit" class="btn primary teacher-add-save-btn">
-        إضافة
+    <div class="teacher-add-wrap">
+      <button type="button" class="btn primary" onclick="toggleAddTeacherRow(event)">
+        إضافة معلمة
       </button>
-    </form>
+
+      <form
+        id="addTeacherRow"
+        action="/superadmin/add-teacher"
+        method="POST"
+        class="teacher-add-row hidden"
+      >
+        <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
+
+        <input
+          type="text"
+          name="teacherName"
+          class="teacher-name-input"
+          placeholder="اسم المعلمة الجديدة"
+          required
+        >
+
+        <button type="submit" class="btn primary teacher-add-save-btn">
+          إضافة
+        </button>
+      </form>
+    </div>
   </div>
-</div>
+<% } %>
 
 <script>
-  function toggleAddTeacherRow() {
+  function toggleAddTeacherRow(event) {
     const row = document.getElementById('addTeacherRow');
+    const btn = event.currentTarget;
+
     row.classList.toggle('hidden');
+    btn.textContent = row.classList.contains('hidden') ? 'إضافة معلمة' : 'إلغاء';
   }
 </script>
-
 
 <script>
   function openImportModal() {
