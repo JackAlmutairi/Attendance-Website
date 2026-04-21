@@ -297,6 +297,10 @@
       grid-template-columns: 1fr;
     }
   }
+
+  .attendance-block.teacher-filled {
+  background: #306c86;
+}
 </style>
 
 <div class="page-wrap">
@@ -365,35 +369,26 @@
 
   <div class="attendance-blocks">
     <% const teacherBlocks = Math.round(teacherPresentPercentage / 5); %>
-
     <% for (let i = 0; i < 20; i++) { %>
       <div class="attendance-block <%= i < teacherBlocks ? 'filled teacher-filled' : '' %>"></div>
     <% } %>
   </div>
 
   <div class="overall-stats">
-
     <div class="overall-stat">
       <div class="overall-stat-label">إجمالي الحضور</div>
-      <div class="overall-stat-value">
-        <%= teacherOverall.totalPresent %>
-      </div>
+      <div class="overall-stat-value"><%= teacherOverall.totalPresent %></div>
     </div>
 
     <div class="overall-stat">
       <div class="overall-stat-label">إجمالي الغياب</div>
-      <div class="overall-stat-value">
-        <%= teacherOverall.totalAbsent %>
-      </div>
+      <div class="overall-stat-value"><%= teacherOverall.totalAbsent %></div>
     </div>
 
     <div class="overall-stat">
       <div class="overall-stat-label">عدد المعلمات</div>
-      <div class="overall-stat-value">
-        <%= teacherOverall.totalPresent %> / <%= teacherOverall.totalTeachers %>
-      </div>
+      <div class="overall-stat-value"><%= teacherOverall.totalPresent %> / <%= teacherOverall.totalTeachers %></div>
     </div>
-
   </div>
 
 </div>
