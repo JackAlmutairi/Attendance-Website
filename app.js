@@ -541,13 +541,40 @@ gradeParams = [effectiveDate];
         ? ((overall.totalPresent * 100) / overall.totalStudents).toFixed(1)
         : 0;
 
+
+    const teacherOverallQuery = `
+  SELECT
+    COUNT(t.teacherID) AS totalTeachers,
+    SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
+    SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent
+  FROM SubjectTeachers t
+  LEFT JOIN TeacherAttendance a
+    ON a.teacherID = t.teacherID
+    AND a.attendanceDate = ?
+`;
+
+const [teacherOverallRows] = await db.query(teacherOverallQuery, [effectiveDate]);
+
+const teacherOverall = teacherOverallRows[0] || {
+  totalTeachers: 0,
+  totalPresent: 0,
+  totalAbsent: 0
+};
+
+const teacherPresentPercentage =
+  teacherOverall.totalTeachers > 0
+    ? ((teacherOverall.totalPresent * 100) / teacherOverall.totalTeachers).toFixed(1)
+    : 0;
+
     res.render('superadmin-attendance-records', {
       records,
       gradeCards,
       selectedDate,
       overall,
       overallPresentPercentage,
-      kuwaitDate
+      kuwaitDate,
+      teacherOverall,
+      teacherPresentPercentage
     });
   } catch (error) {
     console.error(error);
