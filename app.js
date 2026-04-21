@@ -962,8 +962,9 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
 app.post('/superadmin/update-teachers', requireSuperAdmin, async (req, res) => {
   try {
     const teacherIDs = req.body.teacherID;
+    const departmentID = req.body.departmentID;
 
-    if (!teacherIDs) {
+    if (!teacherIDs || !departmentID) {
       return res.redirect(
         '/superadmin/owner?error=' +
         encodeURIComponent('لا توجد بيانات للحفظ.')
@@ -974,22 +975,19 @@ app.post('/superadmin/update-teachers', requireSuperAdmin, async (req, res) => {
 
     for (const id of ids) {
       const teacherName = (req.body[`teacherName_${id}`] || '').trim();
-      const departmentID = req.body[`departmentID_${id}`];
 
-      if (!teacherName) {
-        continue;
-      }
+      if (!teacherName) continue;
 
       await db.query(`
         UPDATE SubjectTeachers
-        SET teacherName = ?, departmentID = ?
-        WHERE teacherID = ?
-      `, [teacherName, departmentID, id]);
+        SET teacherName = ?
+        WHERE teacherID = ? AND departmentID = ?
+      `, [teacherName, id, departmentID]);
     }
 
     res.redirect(
-      '/superadmin/owner?message=' +
-      encodeURIComponent('تم حفظ بيانات المعلمات بنجاح.')
+      '/superadmin/owner?departmentID=' + encodeURIComponent(departmentID) +
+      '&message=' + encodeURIComponent('تم حفظ بيانات المعلمات بنجاح.')
     );
   } catch (error) {
     console.error(error);
@@ -1002,7 +1000,7 @@ app.post('/superadmin/update-teachers', requireSuperAdmin, async (req, res) => {
 
 app.post('/superadmin/delete-teacher', requireSuperAdmin, async (req, res) => {
   try {
-    const { teacherID } = req.body;
+    const { teacherID, departmentID } = req.body;
 
     await db.query(
       'DELETE FROM SubjectTeachers WHERE teacherID = ?',
@@ -1010,8 +1008,8 @@ app.post('/superadmin/delete-teacher', requireSuperAdmin, async (req, res) => {
     );
 
     res.redirect(
-      '/superadmin/owner?message=' +
-      encodeURIComponent('تم حذف المعلمة بنجاح.')
+      '/superadmin/owner?departmentID=' + encodeURIComponent(departmentID) +
+      '&message=' + encodeURIComponent('تم حذف المعلمة بنجاح.')
     );
   } catch (error) {
     console.error(error);
@@ -1027,10 +1025,10 @@ app.post('/superadmin/add-teacher', requireSuperAdmin, async (req, res) => {
     const { teacherName, departmentID } = req.body;
     const trimmedName = (teacherName || '').trim();
 
-    if (!trimmedName) {
+    if (!trimmedName || !departmentID) {
       return res.redirect(
         '/superadmin/owner?error=' +
-        encodeURIComponent('اسم المعلمة مطلوب.')
+        encodeURIComponent('اسم المعلمة والقسم مطلوبان.')
       );
     }
 
@@ -1040,8 +1038,8 @@ app.post('/superadmin/add-teacher', requireSuperAdmin, async (req, res) => {
     `, [trimmedName, departmentID]);
 
     res.redirect(
-      '/superadmin/owner?message=' +
-      encodeURIComponent('تمت إضافة المعلمة بنجاح.')
+      '/superadmin/owner?departmentID=' + encodeURIComponent(departmentID) +
+      '&message=' + encodeURIComponent('تمت إضافة المعلمة بنجاح.')
     );
   } catch (error) {
     console.error(error);
