@@ -349,6 +349,7 @@
   </div>
 
 </div>
+
 <div class="overall-attendance-card">
 
   <div class="overall-attendance-label">
@@ -360,6 +361,14 @@
 
   <div class="overall-attendance-value">
     <%= teacherPresentPercentage %>%
+  </div>
+
+  <div class="attendance-blocks">
+    <% const teacherBlocks = Math.round(teacherPresentPercentage / 5); %>
+
+    <% for (let i = 0; i < 20; i++) { %>
+      <div class="attendance-block <%= i < teacherBlocks ? 'filled teacher-filled' : '' %>"></div>
+    <% } %>
   </div>
 
   <div class="overall-stats">

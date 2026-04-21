@@ -544,13 +544,13 @@ gradeParams = [effectiveDate];
 
     const teacherOverallQuery = `
   SELECT
-    COUNT(t.teacherID) AS totalTeachers,
-    SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
-    SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent
-  FROM SubjectTeachers t
-  LEFT JOIN TeacherAttendance a
-    ON a.teacherID = t.teacherID
-    AND a.attendanceDate = ?
+    COUNT(st.teacherID) AS totalTeachers,
+    SUM(CASE WHEN ta.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
+    SUM(CASE WHEN ta.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent
+  FROM SubjectTeachers st
+  LEFT JOIN TeacherAttendance ta
+    ON ta.teacherID = st.teacherID
+    AND ta.attendanceDate = ?
 `;
 
 const [teacherOverallRows] = await db.query(teacherOverallQuery, [effectiveDate]);
