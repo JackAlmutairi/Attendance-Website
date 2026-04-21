@@ -297,12 +297,17 @@
 
 .teacher-row {
   display: grid;
-  grid-template-columns: 1fr 52px;
-  gap: 0.75rem;
+
+  grid-template-columns: 1fr 90px;
+
+  gap: 0.6rem;
   align-items: center;
+
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 0.8rem 1rem;
+
+  padding: 0.6rem 0.9rem;
+
   background: #fff;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
 }
@@ -310,25 +315,33 @@
 .teacher-name-input {
   width: 100%;
   min-width: 0;
-  padding: 0.72rem 0.9rem;
+
+  padding: 0.6rem 0.8rem;
+
   border-radius: 12px;
   border: 1px solid var(--border);
+
   font: inherit;
   background: #fff;
-  color: var(--text);
+
   box-sizing: border-box;
 }
 
 .teacher-delete-btn {
-  width: 46px;
-  min-width: 46px;
-  height: 42px;
-  padding: 0;
+  width: 100%;
+  height: 40px;
+  font-size: 0.85rem;
+  font-weight: 700;
   border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 800;
+  background: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
+.teacher-delete-btn:hover {
+  background: #dc2626;
+}
 .teacher-add-wrap {
   margin-top: 1rem;
   display: flex;
@@ -354,9 +367,8 @@
 }
 
 @media (max-width: 760px) {
-  .teacher-row,
-  .teacher-add-row {
-    grid-template-columns: 1fr;
+  .teacher-row {
+    grid-template-columns: 1fr 80px;
   }
 
   .teachers-save-btn,
@@ -590,14 +602,13 @@
               >
 
               <button
-                type="submit"
-                form="deleteTeacherForm_<%= teacher.teacherID %>"
-                class="btn delete-btn teacher-delete-btn"
-                onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
-                title="حذف"
-              >
-                ×
-              </button>
+  type="submit"
+  form="deleteTeacherForm_<%= teacher.teacherID %>"
+  class="btn delete-btn teacher-delete-btn"
+  onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
+>
+  حذف
+</button>
             </div>
           <% }) %>
         </div>
