@@ -445,6 +445,200 @@
 
 </div>
 
+<div class="owner-card">
+
+<h2 class="owner-section-title">
+إدارة المعلمات
+</h2>
+
+<p class="owner-subtitle">
+ابحث عن معلمة ثم قم بتعديلها أو حذفها.
+</p>
+
+<form action="/superadmin/find-teacher" method="GET" class="owner-form">
+
+<input
+type="text"
+name="teacherName"
+placeholder="أدخل اسم المعلمة"
+required
+>
+
+<button type="submit" class="btn primary">
+بحث
+</button>
+
+</form>
+
+<div class="owner-card">
+
+<h2 class="owner-section-title">
+إدارة المعلمات
+</h2>
+
+<p class="owner-subtitle">
+ابحث عن معلمة ثم قم بتعديلها أو حذفها.
+</p>
+
+<form action="/superadmin/find-teacher" method="GET" class="owner-form">
+
+<input
+type="text"
+name="teacherName"
+placeholder="أدخل اسم المعلمة"
+required
+>
+
+<button type="submit" class="btn primary">
+بحث
+</button>
+
+</form>
+
+<hr style="margin:1rem 0">
+
+<h3 class="owner-section-title">
+إضافة معلمة جديدة
+</h3>
+
+<form
+action="/superadmin/add-teacher"
+method="POST"
+class="owner-form"
+>
+
+<input
+type="text"
+name="teacherName"
+placeholder="اسم المعلمة"
+required
+>
+
+<select name="departmentID" required>
+
+<% if (typeof departments !== 'undefined') { %>
+
+<% departments.forEach(d => { %>
+
+<option value="<%= d.departmentID %>">
+<%= d.departmentName %>
+</option>
+
+<% }) %>
+
+<% } %>
+
+</select>
+
+<button type="submit" class="btn primary">
+إضافة
+</button>
+
+</form>
+
+<% if (typeof teachers !== 'undefined' && teachers.length > 0) { %>
+
+<hr style="margin:1rem 0">
+
+<% teachers.forEach(teacher => { %>
+
+<div class="student-card">
+
+<div class="student-header">
+
+<strong>
+<%= teacher.teacherName %>
+</strong>
+
+<span class="student-class">
+القسم:
+<%= teacher.departmentName %>
+</span>
+
+</div>
+
+<div class="student-actions">
+
+<div class="student-action-bar">
+
+<form
+action="/superadmin/update-teacher"
+method="POST"
+class="student-action-row"
+>
+
+<input
+type="hidden"
+name="teacherID"
+value="<%= teacher.teacherID %>"
+>
+
+<input
+type="text"
+name="teacherName"
+value="<%= teacher.teacherName %>"
+class="student-name-input"
+required
+>
+
+<select name="departmentID">
+
+<% departments.forEach(d => { %>
+
+<option
+value="<%= d.departmentID %>"
+<%= d.departmentName === teacher.departmentName ? 'selected' : '' %>
+>
+
+<%= d.departmentName %>
+
+</option>
+
+<% }) %>
+
+</select>
+
+<button type="submit" class="btn primary">
+حفظ
+</button>
+
+</form>
+
+<form
+action="/superadmin/delete-teacher"
+method="POST"
+class="delete-form"
+>
+
+<input
+type="hidden"
+name="teacherID"
+value="<%= teacher.teacherID %>"
+>
+
+<button
+type="submit"
+class="btn delete-btn"
+onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
+>
+
+حذف
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<% }) %>
+
+<% } %>
+
+
 <script>
   function openImportModal() {
     const fileInput = document.getElementById('studentsFile');
@@ -465,7 +659,6 @@
 
   function submitImportForm() {
     const password = document.getElementById('modalOwnerPassword').value.trim();
-
     if (!password) {
       alert('يرجى إدخال كلمة مرور الإدارة');
       return;
