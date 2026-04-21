@@ -545,8 +545,18 @@ gradeParams = [effectiveDate];
     const teacherOverallQuery = `
   SELECT
     COUNT(st.teacherID) AS totalTeachers,
-    SUM(CASE WHEN ta.status = 'Present' THEN 1 ELSE 0 END) AS totalPresent,
-    SUM(CASE WHEN ta.status = 'Absent' THEN 1 ELSE 0 END) AS totalAbsent
+    SUM(
+      CASE
+        WHEN COALESCE(ta.status, 'Present') = 'Present' THEN 1
+        ELSE 0
+      END
+    ) AS totalPresent,
+    SUM(
+      CASE
+        WHEN COALESCE(ta.status, 'Present') = 'Absent' THEN 1
+        ELSE 0
+      END
+    ) AS totalAbsent
   FROM SubjectTeachers st
   LEFT JOIN TeacherAttendance ta
     ON ta.teacherID = st.teacherID
