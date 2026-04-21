@@ -951,33 +951,43 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
   }
 });
 
-app.post('/superadmin/update-teacher', requireSuperAdmin, async (req, res) => {
+app.post('/superadmin/update-teachers', requireSuperAdmin, async (req, res) => {
   try {
-    const { teacherID, teacherName, departmentID } = req.body;
-    const trimmedName = (teacherName || '').trim();
+    const teacherIDs = req.body.teacherID;
 
-    if (!trimmedName) {
+    if (!teacherIDs) {
       return res.redirect(
         '/superadmin/owner?error=' +
-        encodeURIComponent('اسم المعلمة مطلوب.')
+        encodeURIComponent('لا توجد بيانات للحفظ.')
       );
     }
 
-    await db.query(`
-      UPDATE SubjectTeachers
-      SET teacherName = ?, departmentID = ?
-      WHERE teacherID = ?
-    `, [trimmedName, departmentID, teacherID]);
+    const ids = Array.isArray(teacherIDs) ? teacherIDs : [teacherIDs];
+
+    for (const id of ids) {
+      const teacherName = (req.body[`teacherName_${id}`] || '').trim();
+      const departmentID = req.body[`departmentID_${id}`];
+
+      if (!teacherName) {
+        continue;
+      }
+
+      await db.query(`
+        UPDATE SubjectTeachers
+        SET teacherName = ?, departmentID = ?
+        WHERE teacherID = ?
+      `, [teacherName, departmentID, id]);
+    }
 
     res.redirect(
       '/superadmin/owner?message=' +
-      encodeURIComponent('تم تعديل بيانات المعلمة بنجاح.')
+      encodeURIComponent('تم حفظ بيانات المعلمات بنجاح.')
     );
   } catch (error) {
     console.error(error);
     res.redirect(
       '/superadmin/owner?error=' +
-      encodeURIComponent('فشل تعديل بيانات المعلمة.')
+      encodeURIComponent('فشل حفظ بيانات المعلمات.')
     );
   }
 });
