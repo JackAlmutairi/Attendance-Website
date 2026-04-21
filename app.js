@@ -912,11 +912,31 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
       ORDER BY className
     `);
 
+    const [departments] = await db.query(`
+      SELECT departmentID, departmentName
+      FROM TeacherDepartments
+      ORDER BY departmentName
+    `);
+
+    const [teachers] = await db.query(`
+      SELECT
+        t.teacherID,
+        t.teacherName,
+        t.departmentID,
+        d.departmentName
+      FROM SubjectTeachers t
+      JOIN TeacherDepartments d
+        ON t.departmentID = d.departmentID
+      ORDER BY t.teacherName
+    `);
+
     res.render('superadmin-owner', {
       message: req.query.message || null,
       error: req.query.error || null,
       students: [],
-      classes
+      classes,
+      teachers,
+      departments
     });
   } catch (error) {
     console.error(error);
@@ -924,8 +944,93 @@ app.get('/superadmin/owner', requireSuperAdmin, async (req, res) => {
       message: null,
       error: 'فشل تحميل الصفحة.',
       students: [],
-      classes: []
+      classes: [],
+      teachers: [],
+      departments: []
     });
+  }
+});
+
+app.post('/superadmin/update-teacher', requireSuperAdmin, async (req, res) => {
+  try {
+    const { teacherID, teacherName, departmentID } = req.body;
+    const trimmedName = (teacherName || '').trim();
+
+    if (!trimmedName) {
+      return res.redirect(
+        '/superadmin/owner?error=' +
+        encodeURIComponent('اسم المعلمة مطلوب.')
+      );
+    }
+
+    await db.query(`
+      UPDATE SubjectTeachers
+      SET teacherName = ?, departmentID = ?
+      WHERE teacherID = ?
+    `, [trimmedName, departmentID, teacherID]);
+
+    res.redirect(
+      '/superadmin/owner?message=' +
+      encodeURIComponent('تم تعديل بيانات المعلمة بنجاح.')
+    );
+  } catch (error) {
+    console.error(error);
+    res.redirect(
+      '/superadmin/owner?error=' +
+      encodeURIComponent('فشل تعديل بيانات المعلمة.')
+    );
+  }
+});
+
+app.post('/superadmin/delete-teacher', requireSuperAdmin, async (req, res) => {
+  try {
+    const { teacherID } = req.body;
+
+    await db.query(
+      'DELETE FROM SubjectTeachers WHERE teacherID = ?',
+      [teacherID]
+    );
+
+    res.redirect(
+      '/superadmin/owner?message=' +
+      encodeURIComponent('تم حذف المعلمة بنجاح.')
+    );
+  } catch (error) {
+    console.error(error);
+    res.redirect(
+      '/superadmin/owner?error=' +
+      encodeURIComponent('فشل حذف المعلمة.')
+    );
+  }
+});
+
+app.post('/superadmin/add-teacher', requireSuperAdmin, async (req, res) => {
+  try {
+    const { teacherName, departmentID } = req.body;
+    const trimmedName = (teacherName || '').trim();
+
+    if (!trimmedName) {
+      return res.redirect(
+        '/superadmin/owner?error=' +
+        encodeURIComponent('اسم المعلمة مطلوب.')
+      );
+    }
+
+    await db.query(`
+      INSERT INTO SubjectTeachers (teacherName, departmentID)
+      VALUES (?, ?)
+    `, [trimmedName, departmentID]);
+
+    res.redirect(
+      '/superadmin/owner?message=' +
+      encodeURIComponent('تمت إضافة المعلمة بنجاح.')
+    );
+  } catch (error) {
+    console.error(error);
+    res.redirect(
+      '/superadmin/owner?error=' +
+      encodeURIComponent('فشل إضافة المعلمة.')
+    );
   }
 });
 
