@@ -348,7 +348,11 @@
   flex-direction: column;
   gap: 0.85rem;
 }
-
+.teachers-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
 .teacher-add-row {
   display: grid;
   grid-template-columns: 1fr 120px;
@@ -572,17 +576,31 @@
 <% if (selectedDepartmentID) { %>
   <div class="owner-card">
     <div class="teachers-header">
-      <div>
-        <h2 class="owner-section-title">معلمات القسم</h2>
-        <p class="owner-subtitle">
-          يمكنك تعديل الأسماء أو حذف المعلمات من هذا القسم.
-        </p>
-      </div>
+  <div>
+    <h2 class="owner-section-title">معلمات القسم</h2>
+    <p class="owner-subtitle">
+      يمكنك تعديل الأسماء أو حذف المعلمات من هذا القسم.
+    </p>
+  </div>
 
-      <button type="submit" form="teachersForm" class="btn primary teachers-save-btn">
-        حفظ
-      </button>
-    </div>
+  <div class="teachers-actions">
+    <button
+      type="button"
+      class="btn secondary"
+      onclick="toggleAddTeacherRow(event)"
+    >
+      إضافة معلمة
+    </button>
+
+    <button
+      type="submit"
+      form="teachersForm"
+      class="btn primary teachers-save-btn"
+    >
+      حفظ
+    </button>
+  </div>
+</div>
 
     <form id="teachersForm" action="/superadmin/update-teachers" method="POST">
       <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
@@ -628,33 +646,26 @@
         <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
       </form>
     <% }) %>
+    <form
+  id="addTeacherRow"
+  action="/superadmin/add-teacher"
+  method="POST"
+  class="teacher-add-row hidden"
+>
+  <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
 
-    <div class="teacher-add-wrap">
-      <button type="button" class="btn primary" onclick="toggleAddTeacherRow(event)">
-        إضافة معلمة
-      </button>
+  <input
+    type="text"
+    name="teacherName"
+    class="teacher-name-input"
+    placeholder="اسم المعلمة الجديدة"
+    required
+  >
 
-      <form
-        id="addTeacherRow"
-        action="/superadmin/add-teacher"
-        method="POST"
-        class="teacher-add-row hidden"
-      >
-        <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
-
-        <input
-          type="text"
-          name="teacherName"
-          class="teacher-name-input"
-          placeholder="اسم المعلمة الجديدة"
-          required
-        >
-
-        <button type="submit" class="btn primary teacher-add-save-btn">
-          إضافة
-        </button>
-      </form>
-    </div>
+  <button type="submit" class="btn primary teacher-add-save-btn">
+    إضافة
+  </button>
+</form>
   </div>
 <% } %>
 
