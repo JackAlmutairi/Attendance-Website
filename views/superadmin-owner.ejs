@@ -1,8 +1,13 @@
-<%- include('../partials/header') %>
 <%
-  students = students || [];
-  classes = classes || [];
+  students = typeof students !== 'undefined' && Array.isArray(students) ? students : [];
+  classes = typeof classes !== 'undefined' && Array.isArray(classes) ? classes : [];
+  departments = typeof departments !== 'undefined' && Array.isArray(departments) ? departments : [];
+  teachers = typeof teachers !== 'undefined' && Array.isArray(teachers) ? teachers : [];
+  selectedDepartmentID = typeof selectedDepartmentID !== 'undefined' ? selectedDepartmentID : '';
+  message = typeof message !== 'undefined' ? message : null;
+  error = typeof error !== 'undefined' ? error : null;
 %>
+<%- include('../partials/header') %>
 
 <style>
   .owner-wrap {
@@ -415,16 +420,19 @@
         required
       >
 
+      <label for="ownerPasswordInput">كلمة مرور الإدارة</label>
       <input
-        type="hidden"
+        type="password"
         name="ownerPassword"
         id="ownerPasswordInput"
+        autocomplete="current-password"
+        placeholder="كلمة مرور الإدارة"
+        required
       >
 
       <button
-        type="button"
+        type="submit"
         class="btn primary"
-        onclick="openImportModal()"
       >
         استيراد الطالبات
       </button>
@@ -668,40 +676,4 @@
     row.classList.toggle('hidden');
     btn.textContent = row.classList.contains('hidden') ? 'إضافة معلمة' : 'إلغاء';
   }
-</script>
-
-<script>
-  function openImportModal() {
-    const fileInput = document.getElementById('studentsFile');
-
-    if (!fileInput.files || fileInput.files.length === 0) {
-      alert('يرجى اختيار ملف Excel أولاً');
-      return;
-    }
-
-    document.getElementById('importModal').classList.add('active');
-    document.getElementById('modalOwnerPassword').value = '';
-    document.getElementById('modalOwnerPassword').focus();
-  }
-
-  function closeImportModal() {
-    document.getElementById('importModal').classList.remove('active');
-  }
-
-  function submitImportForm() {
-    const password = document.getElementById('modalOwnerPassword').value.trim();
-    if (!password) {
-      alert('يرجى إدخال كلمة مرور الإدارة');
-      return;
-    }
-
-    document.getElementById('ownerPasswordInput').value = password;
-    document.getElementById('importStudentsForm').submit();
-  }
-
-  document.getElementById('importModal').addEventListener('click', function (e) {
-    if (e.target.id === 'importModal') {
-      closeImportModal();
-    }
-  });
 </script>
