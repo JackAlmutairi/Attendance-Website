@@ -1,0 +1,707 @@
+<%- include('../partials/header') %>
+<%
+  students = students || [];
+  classes = classes || [];
+%>
+
+<style>
+  .owner-wrap {
+    max-width: 760px;
+    margin: 1.5rem auto;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .owner-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+  }
+
+  .owner-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .owner-subtitle {
+    margin: 0 0 1rem 0;
+    color: var(--text-muted);
+  }
+
+  .owner-section-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .owner-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .owner-form input[type="file"],
+  .owner-form input[type="password"] {
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font: inherit;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .msg {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .msg.success {
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .msg.error {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  .danger-note {
+    color: #b91c1c;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .danger-btn {
+    background: #b91c1c;
+    color: white;
+    border: none;
+  }
+
+  .danger-btn:hover {
+    background: #991b1b;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 460px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    padding: 1.25rem;
+    direction: rtl;
+    text-align: right;
+    animation: modalFade 0.18s ease;
+  }
+
+  .modal-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #b91c1c;
+  }
+
+  .modal-text {
+    margin: 0 0 1rem 0;
+    color: #444;
+    line-height: 1.8;
+  }
+
+  .modal-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font: inherit;
+    box-sizing: border-box;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .modal-actions .btn {
+    min-width: 120px;
+  }
+
+.student-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.student-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(48, 108, 134, 0.10);
+  flex-wrap: wrap;
+}
+
+.student-header strong {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.student-class {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: rgba(48, 108, 134, 0.08);
+  border: 1px solid rgba(48, 108, 134, 0.14);
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+}
+
+.class-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+
+.student-actions {
+  margin-top: 0.75rem;
+}
+
+.student-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #f9fbfc;
+  flex-wrap: nowrap;
+}
+
+/* this is the important part */
+.student-action-row,
+.delete-form {
+  display: contents;
+}
+
+.student-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.student-action-bar select {
+  flex: 0 0 110px;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.student-action-bar .btn {
+  min-width: 120px;
+  min-height: 2.25rem;
+  height: auto;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: inherit;
+  padding: 0 0.85rem;
+}
+
+@media (max-width: 700px) {
+  .student-action-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .student-name-input,
+  .student-action-bar select,
+  .student-action-bar .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .student-action-bar select {
+    flex: unset;
+  }
+}
+
+.teachers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.teachers-save-btn {
+  min-width: 120px;
+}
+
+.teachers-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.teacher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.teacher-row {
+  display: grid;
+  grid-template-columns: 1fr 90px;
+  gap: 0.6rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.6rem 0.9rem;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+}
+
+.teacher-name-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.teacher-delete-btn {
+  width: 100%;
+  height: 40px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 10px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.teacher-delete-btn:hover {
+  background: #dc2626;
+}
+
+.teacher-add-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.teacher-add-save-btn {
+  min-width: 120px;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .teacher-row {
+    grid-template-columns: 1fr 80px;
+  }
+
+  .teacher-add-row {
+    grid-template-columns: 1fr 100px;
+  }
+
+  .teachers-save-btn,
+  .teacher-delete-btn,
+  .teacher-add-save-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+</style>
+
+<div class="owner-wrap">
+
+  <div class="owner-card">
+    <h1 class="owner-title">لوحة التحكم المتقدمة</h1>
+    <p class="owner-subtitle">أدوات خاصة لإدارة بيانات الطالبات وإعادة ضبط النظام.</p>
+
+    <% if (message) { %>
+      <div class="msg success"><%= message %></div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="msg error"><%= error %></div>
+    <% } %>
+  </div>
+
+  <div class="owner-card">
+    <h2 class="owner-section-title">استيراد ملف الطالبات (Excel)</h2>
+
+    <p class="danger-note">
+      تنبيه: سيتم حذف بيانات الطالبات وسجلات حضورهن واستبدال الطالبات بالملف الجديد. تبقى بيانات المعلمات والفصول محفوظة.
+    </p>
+
+    <p>يمكن رفع ملف موحد بأعمدة: اسم الطالب، الصف، الشعبة، أو أوراق منفصلة باسم 6 و7 و8 و9.</p>
+
+    <form
+      id="importStudentsForm"
+      class="owner-form"
+      action="/superadmin/import-students"
+      method="POST"
+      enctype="multipart/form-data"
+    >
+      <input
+        type="file"
+        id="studentsFile"
+        name="studentsFile"
+        accept=".xlsx,.xls"
+        required
+      >
+
+      <input
+        type="hidden"
+        name="ownerPassword"
+        id="ownerPasswordInput"
+      >
+
+      <button
+        type="button"
+        class="btn primary"
+        onclick="openImportModal()"
+      >
+        استيراد الطالبات
+      </button>
+    </form>
+  </div>
+
+  <div class="owner-card">
+
+  <h2 class="owner-section-title">إدارة الطالبات</h2>
+
+  <p class="owner-subtitle">
+    ابحث عن طالبة ثم قم بنقلها إلى صف آخر أو حذفها من النظام.
+  </p>
+
+  <form action="/superadmin/find-student" method="GET" class="owner-form">
+    <input
+      type="text"
+      name="studentName"
+      placeholder="أدخل اسم الطالبة"
+      required
+    >
+
+    <button type="submit" class="btn primary">
+      بحث
+    </button>
+  </form>
+
+  <% if (typeof students !== 'undefined' && students.length > 0) { %>
+
+    <hr style="margin:1rem 0">
+
+    <% students.forEach(student => { %>
+
+      <div class="student-card">
+
+        <div class="student-header">
+          <strong><%= student.name %></strong>
+
+          <span class="student-class">
+            الصف:
+            <span class="class-code">
+              <%= student.className %>
+            </span>
+          </span>
+        </div>
+
+        <div class="student-actions">
+  <div class="student-action-bar">
+
+    <form
+      action="/superadmin/update-student"
+      method="POST"
+      class="student-action-row"
+    >
+      <input
+        type="hidden"
+        name="studentID"
+        value="<%= student.studentID %>"
+      >
+
+      <input
+        type="text"
+        name="studentName"
+        value="<%= student.name %>"
+        class="student-name-input"
+        required
+      >
+
+      <select name="className" required>
+        <% classes.forEach(c => { %>
+          <option
+            value="<%= c.className %>"
+            <%= c.className === student.className ? 'selected' : '' %>
+          >
+            <%= c.className %>
+          </option>
+        <% }) %>
+      </select>
+
+      <button type="submit" class="btn primary">
+        حفظ التعديلات
+      </button>
+    </form>
+
+    <form
+      action="/superadmin/delete-student"
+      method="POST"
+      class="delete-form"
+    >
+      <input
+        type="hidden"
+        name="studentID"
+        value="<%= student.studentID %>"
+      >
+
+      <button
+        type="submit"
+        class="btn delete-btn"
+        onclick="return confirm('هل تريد حذف هذه الطالبة؟');"
+      >
+        حذف الطالبة
+      </button>
+    </form>
+
+  </div>
+</div>
+</div>
+    <% }) %>
+
+  <% } else if (typeof students !== 'undefined' && students.length === 0) { %>
+
+    <p class="owner-subtitle" style="margin-top:1rem">
+      لا توجد طالبات مطابقة للبحث.
+    </p>
+
+  <% } %>
+
+</div>
+
+<div class="owner-card">
+  <h2 class="owner-section-title">إدارة المعلمات</h2>
+  <p class="owner-subtitle">
+    اختاري القسم لعرض المعلمات وتعديلهن أو حذفهن.
+  </p>
+
+  <form action="/superadmin/owner" method="GET" class="owner-form">
+    <select name="departmentID" required onchange="this.form.submit()">
+      <option value="">اختاري القسم</option>
+      <% departments.forEach(d => { %>
+        <option
+          value="<%= d.departmentID %>"
+          <%= String(selectedDepartmentID) === String(d.departmentID) ? 'selected' : '' %>
+        >
+          <%= d.departmentName %>
+        </option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<% if (selectedDepartmentID) { %>
+  <div class="owner-card">
+    <div class="teachers-header">
+  <div>
+    <h2 class="owner-section-title">معلمات القسم</h2>
+    <p class="owner-subtitle">
+      يمكنك تعديل الأسماء أو حذف المعلمات من هذا القسم.
+    </p>
+  </div>
+
+  <div class="teachers-actions">
+    <button
+      type="button"
+      class="btn secondary"
+      onclick="toggleAddTeacherRow(event)"
+    >
+      إضافة معلمة
+    </button>
+
+    <button
+      type="submit"
+      form="teachersForm"
+      class="btn primary teachers-save-btn"
+    >
+      حفظ
+    </button>
+  </div>
+</div>
+<form
+  id="addTeacherRow"
+  action="/superadmin/add-teacher"
+  method="POST"
+  class="teacher-add-row hidden"
+>
+  <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
+
+  <input
+    type="text"
+    name="teacherName"
+    class="teacher-name-input"
+    placeholder="اسم المعلمة الجديدة"
+    required
+  >
+
+  <button type="submit" class="btn primary teacher-add-save-btn">
+    إضافة
+  </button>
+</form>
+    <form id="teachersForm" action="/superadmin/update-teachers" method="POST">
+      <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
+
+      <% if (teachers && teachers.length > 0) { %>
+        <div class="teacher-list">
+          <% teachers.forEach(teacher => { %>
+            <div class="teacher-row">
+              <input type="hidden" name="teacherID" value="<%= teacher.teacherID %>">
+
+              <input
+                type="text"
+                name="teacherName_<%= teacher.teacherID %>"
+                value="<%= teacher.teacherName %>"
+                class="teacher-name-input"
+                required
+              >
+
+              <button
+  type="submit"
+  form="deleteTeacherForm_<%= teacher.teacherID %>"
+  class="btn delete-btn teacher-delete-btn"
+  onclick="return confirm('هل تريد حذف هذه المعلمة؟');"
+>
+  حذف
+</button>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="owner-subtitle">لا توجد معلمات في هذا القسم حالياً.</p>
+      <% } %>
+    </form>
+
+    <% teachers.forEach(teacher => { %>
+      <form
+        id="deleteTeacherForm_<%= teacher.teacherID %>"
+        action="/superadmin/delete-teacher"
+        method="POST"
+        style="display:none;"
+      >
+        <input type="hidden" name="teacherID" value="<%= teacher.teacherID %>">
+        <input type="hidden" name="departmentID" value="<%= selectedDepartmentID %>">
+      </form>
+    <% }) %>
+  </div>
+<% } %>
+
+<script>
+  function toggleAddTeacherRow(event) {
+    const row = document.getElementById('addTeacherRow');
+    const btn = event.currentTarget;
+
+    row.classList.toggle('hidden');
+    btn.textContent = row.classList.contains('hidden') ? 'إضافة معلمة' : 'إلغاء';
+  }
+</script>
+
+<script>
+  function openImportModal() {
+    const fileInput = document.getElementById('studentsFile');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert('يرجى اختيار ملف Excel أولاً');
+      return;
+    }
+
+    document.getElementById('importModal').classList.add('active');
+    document.getElementById('modalOwnerPassword').value = '';
+    document.getElementById('modalOwnerPassword').focus();
+  }
+
+  function closeImportModal() {
+    document.getElementById('importModal').classList.remove('active');
+  }
+
+  function submitImportForm() {
+    const password = document.getElementById('modalOwnerPassword').value.trim();
+    if (!password) {
+      alert('يرجى إدخال كلمة مرور الإدارة');
+      return;
+    }
+
+    document.getElementById('ownerPasswordInput').value = password;
+    document.getElementById('importStudentsForm').submit();
+  }
+
+  document.getElementById('importModal').addEventListener('click', function (e) {
+    if (e.target.id === 'importModal') {
+      closeImportModal();
+    }
+  });
+</script>
