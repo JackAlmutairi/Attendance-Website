@@ -12,6 +12,12 @@ const db = require('./db-connector');
 const ExcelJS = require('exceljs');
 const multer = require('multer');
 const XLSX = require('xlsx');
+const { parseStudentWorkbook } = require('./student-import');
+
+async function getOwnerPageClasses() {
+  const [classes] = await db.query('SELECT classID, className FROM Classes ORDER BY className');
+  return classes;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -47,13 +53,6 @@ app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
 });
-
-async function getOwnerPageClasses() {
-  const [classes] = await db.query(
-    'SELECT classID, className FROM Classes ORDER BY className'
-  );
-  return classes;
-}
 
 function requireAdmin(req, res, next) {
   if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin')) {
@@ -1108,10 +1107,15 @@ app.post(
   upload.single('studentsFile'),
   async (req, res) => {
     let connection;
+    res.locals.departments = [];
+    res.locals.teachers = [];
+    res.locals.selectedDepartmentID = '';
 
     try {
       const ownerPassword = (req.body.ownerPassword || '').trim();
       const classes = await getOwnerPageClasses();
+      const [departments] = await db.query('SELECT departmentID, departmentName FROM TeacherDepartments ORDER BY departmentName');
+      res.locals.departments = departments;
 
       if (ownerPassword !== process.env.OWNER_PASSWORD) {
         return res.status(403).render('superadmin-owner', {
@@ -1132,70 +1136,26 @@ app.post(
       }
 
       const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-      const requiredSheets = ['6', '7', '8', '9'];
+      const roster = parseStudentWorkbook(workbook);
+      const classIDs = new Map(classes.map(c => [c.className, c.classID]));
+      for (const student of roster) {
+        if (!classIDs.has(student.className)) {
+          throw new Error(`الفصل ${student.className} غير موجود في قاعدة البيانات.`);
+        }
+      }
 
       connection = await db.getConnection();
       await connection.beginTransaction();
-
       await connection.query('DELETE FROM Attendence');
       await connection.query('DELETE FROM Students');
-      await connection.query('ALTER TABLE Attendence AUTO_INCREMENT = 1');
-      await connection.query('ALTER TABLE Students AUTO_INCREMENT = 1');
 
-      let insertedCount = 0;
-      const seenRows = new Set();
-
-      for (const grade of requiredSheets) {
-        const sheet = workbook.Sheets[grade];
-
-        if (!sheet) {
-          throw new Error(`الورقة ${grade} غير موجودة في الملف.`);
-        }
-
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-
-        for (const row of rows) {
-          const studentName = String(row['اسم الطالب'] || '').trim();
-          const sectorRaw = String(row['الشعبة'] || '').trim();
-
-          if (!studentName || !sectorRaw) {
-            continue;
-          }
-
-          const sector = parseInt(sectorRaw, 10);
-
-          if (Number.isNaN(sector)) {
-            throw new Error(`رقم الشعبة غير صحيح في صف من صفوف المرحلة ${grade}.`);
-          }
-
-          const className = `${grade}-${sector}`;
-          const uniqueKey = `${studentName}__${className}`;
-
-          if (seenRows.has(uniqueKey)) {
-            continue;
-          }
-
-          seenRows.add(uniqueKey);
-
-          const [classRows] = await connection.query(
-            'SELECT classID FROM Classes WHERE className = ?',
-            [className]
-          );
-
-          if (classRows.length === 0) {
-            throw new Error(`الفصل ${className} غير موجود في قاعدة البيانات.`);
-          }
-
-          const classID = classRows[0].classID;
-
-          await connection.query(
-            'INSERT INTO Students (studentName, classID) VALUES (?, ?)',
-            [studentName, classID]
-          );
-
-          insertedCount++;
-        }
+      for (const student of roster) {
+        await connection.query(
+          'INSERT INTO Students (studentName, classID) VALUES (?, ?)',
+          [student.studentName, classIDs.get(student.className)]
+        );
       }
+      const insertedCount = roster.length;
 
       await connection.commit();
 
