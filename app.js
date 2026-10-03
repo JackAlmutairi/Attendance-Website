@@ -48,6 +48,13 @@ app.use((req, res, next) => {
   next();
 });
 
+async function getOwnerPageClasses() {
+  const [classes] = await db.query(
+    'SELECT classID, className FROM Classes ORDER BY className'
+  );
+  return classes;
+}
+
 function requireAdmin(req, res, next) {
   if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin')) {
     return next();
